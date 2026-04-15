@@ -1,3 +1,4 @@
+const supabase = window.supabaseClient;
 /* ═══════════════════════════════════════════════════════
    Planify — js/auth.js
    Přihlášení, registrace, správa session
