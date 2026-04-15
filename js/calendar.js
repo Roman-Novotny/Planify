@@ -394,7 +394,7 @@ async function saveEvent() {
   btn.textContent = 'Ukládám…';
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await window.supabaseClient
       .from('events')
       .insert(payload)
       .select()
@@ -428,7 +428,7 @@ async function deleteEvent(id) {
 
   renderCalendar();
 
-  const { error } = await supabase.from('events').delete().eq('id', id);
+  const { error } = await window.supabaseClient.from('events').delete().eq('id', id);
 
   if (error) {
     window.APP_DATA.events.splice(idx, 0, removed);
