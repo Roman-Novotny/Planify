@@ -181,7 +181,7 @@ async function updateGoalProgress(id, newValue) {
   renderGoals();
   renderDashboard();
 
-  const { error } = await supabase
+  const { error } = await window.supabaseClient
     .from('goals')
     .update({
       current_value: clamped,
@@ -297,7 +297,7 @@ async function saveGoal() {
   try {
     if (goalEditId) {
       // Aktualizace
-      const { data, error } = await supabase
+      const { data, error } = await window.supabaseClient
         .from('goals')
         .update(payload)
         .eq('id', goalEditId)
@@ -314,7 +314,7 @@ async function saveGoal() {
       // Nový
       payload.created_at = new Date().toISOString();
 
-      const { data, error } = await supabase
+      const { data, error } = await window.supabaseClient
         .from('goals')
         .insert(payload)
         .select()
@@ -349,7 +349,7 @@ async function deleteGoal(id) {
   renderGoals();
   renderDashboard();
 
-  const { error } = await supabase.from('goals').delete().eq('id', id);
+  const { error } = await window.supabaseClient.from('goals').delete().eq('id', id);
 
   if (error) {
     window.APP_DATA.goals.splice(idx, 0, removed);
