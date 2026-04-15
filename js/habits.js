@@ -150,14 +150,14 @@ async function toggleHabit(id) {
     renderDashboard();
 
     // DB — smazat log
-    await supabase
+    await window.supabaseClient
       .from('habit_logs')
       .delete()
       .eq('habit_id', id)
       .eq('log_date', todayStr);
 
     // DB — aktualizovat streak
-    await supabase
+    await window.supabaseClient
       .from('habits')
       .update({ streak: habit.streak })
       .eq('id', id);
@@ -188,7 +188,7 @@ async function toggleHabit(id) {
     renderDashboard();
 
     // DB — vložit log (upsert kvůli unique constraint)
-    const { error: logError } = await supabase
+    const { error: logError } = await window.supabaseClient
       .from('habit_logs')
       .upsert({
         habit_id: id,
@@ -201,7 +201,7 @@ async function toggleHabit(id) {
     }
 
     // DB — aktualizovat streak
-    await supabase
+    await window.supabaseClient
       .from('habits')
       .update({ streak: habit.streak })
       .eq('id', id);
@@ -294,7 +294,7 @@ async function saveHabit() {
   try {
     if (habitEditId) {
       // Aktualizace
-      const { data, error } = await supabase
+      const { data, error } = await window.supabaseClient
         .from('habits')
         .update(payload)
         .eq('id', habitEditId)
@@ -311,7 +311,7 @@ async function saveHabit() {
       // Nový
       payload.streak = 0;
 
-      const { data, error } = await supabase
+      const { data, error } = await window.supabaseClient
         .from('habits')
         .insert(payload)
         .select()
@@ -352,7 +352,7 @@ async function deleteHabit(id) {
   renderDashboard();
 
   // DB — kaskádové mazání habit_logs probíhá automaticky (ON DELETE CASCADE)
-  const { error } = await supabase.from('habits').delete().eq('id', id);
+  const { error } = await window.supabaseClient.from('habits').delete().eq('id', id);
 
   if (error) {
     // Rollback
