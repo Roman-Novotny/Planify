@@ -158,7 +158,7 @@ function updateDatetime() {
 ═══════════════════════════════════════════════════════ */
 document.getElementById('logoutBtn')?.addEventListener('click', async () => {
   try {
-    await supabase.auth.signOut();
+    await window.supabaseClient.auth.signOut();
   } catch (e) { /* ignorovat */ }
   window.location.replace('index.html');
 });
@@ -179,15 +179,15 @@ async function loadAllData() {
     tasksR, eventsR, habitsR, habitLogsR,
     txR, catR, budgetsR, goalsR, notesR,
   ] = await Promise.all([
-    supabase.from('tasks')              .select('*').eq('user_id', uid).order('created_at', { ascending: false }),
-    supabase.from('events')             .select('*').eq('user_id', uid).order('event_date'),
-    supabase.from('habits')             .select('*').eq('user_id', uid).order('created_at'),
-    supabase.from('habit_logs')         .select('*').eq('user_id', uid),
-    supabase.from('finance_records')    .select('*').eq('user_id', uid).order('date', { ascending: false }),
-    supabase.from('finance_categories') .select('*').eq('user_id', uid),
-    supabase.from('budgets')            .select('*').eq('user_id', uid),
-    supabase.from('goals')              .select('*').eq('user_id', uid).order('created_at', { ascending: false }),
-    supabase.from('notes')              .select('*').eq('user_id', uid).order('updated_at', { ascending: false }),
+    window.supabaseClient.from('tasks')              .select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+    window.supabaseClient.from('events')             .select('*').eq('user_id', uid).order('event_date'),
+    window.supabaseClient.from('habits')             .select('*').eq('user_id', uid).order('created_at'),
+    window.supabaseClient.from('habit_logs')         .select('*').eq('user_id', uid),
+    window.supabaseClient.from('finance_records')    .select('*').eq('user_id', uid).order('date', { ascending: false }),
+    window.supabaseClient.from('finance_categories') .select('*').eq('user_id', uid),
+    window.supabaseClient.from('budgets')            .select('*').eq('user_id', uid),
+    window.supabaseClient.from('goals')              .select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+    window.supabaseClient.from('notes')              .select('*').eq('user_id', uid).order('updated_at', { ascending: false }),
   ]);
 
   // Logovat případné chyby (ne kritické — pokračujeme)
@@ -516,10 +516,10 @@ async function initApp() {
   // 1. Ověřit session
   let session;
   try {
-    const { data } = await supabase.auth.getSession();
+    const { data } = await window.supabaseClient.auth.getSession();
     session = data.session;
   } catch (err) {
-    console.error('[Planify] Chyba getSession:', err);
+    const { data } = await window.supabaseClient.auth.getSession();
     window.location.replace('index.html');
     return;
   }
@@ -580,7 +580,7 @@ async function initApp() {
   }
 
   // 11. Reagovat na odhlášení
-  supabase.auth.onAuthStateChange((event, newSession) => {
+  window.supabaseClient.auth.onAuthStateChange((event, newSession) => {
     if (event === 'SIGNED_OUT' || !newSession) {
       window.location.replace('index.html');
     }
