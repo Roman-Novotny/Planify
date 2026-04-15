@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="cs" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Planify — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+  <link rel="stylesheet" href="css/tour.css"/>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     LOADING SCREEN
+═══════════════════════════════════════ -->
+<div class="app-loading" id="appLoading">
+  <div class="loading-inner">
+    <picture>
+      <source media="(prefers-color-scheme: light)" srcset="img/logo-text-svet.png"/>
+      <img src="img/logo-text-tmav.png" alt="Planify" class="loading-logo-img" id="loadingLogoImg"/>
+    </picture>
+    <div class="loading-bar">
+      <div class="loading-fill"></div>
+    </div>
+    <p class="loading-label">Načítám vaše data…</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     SIDEBAR
+═══════════════════════════════════════ -->
+<aside class="sidebar" id="sidebar" role="navigation" aria-label="Hlavní navigace">
+
+  <!-- Hlavička sidebar -->
+  <div class="sidebar-header">
+    <!-- Logo — mění se podle tématu, řídí JS -->
+    <a href="app.html" class="sidebar-logo" id="sidebarLogoLink" aria-label="Planify – domů">
+      <img
+        src="img/logo-text-tmav.png"
+        alt="Planify"
+        class="sidebar-logo-img"
+        id="sidebarLogoImg"
+      />
+    </a>
+    <button class="sidebar-close" id="sidebarClose" aria-label="Zavřít menu">✕</button>
+  </div>
+
+  <!-- Hledání -->
+  <div class="sidebar-search" id="tourSearchArea">
+    <span class="search-icon" aria-hidden="true">⌕</span>
+    <input
+      type="text"
+      id="globalSearch"
+      placeholder="Hledat…"
+      autocomplete="off"
+      aria-label="Globální vyhledávání"
+    />
+  </div>
+
+  <!-- Navigace -->
+  <nav class="sidebar-nav" id="tourNav" aria-label="Sekce aplikace">
+    <a href="#" class="nav-item active" data-section="dashboard" aria-current="page">
+      <span class="nav-icon" aria-hidden="true">⊞</span>
+      <span class="nav-label">Dashboard</span>
+    </a>
+    <a href="#" class="nav-item" data-section="tasks" id="navTasks">
+      <span class="nav-icon" aria-hidden="true">✓</span>
+      <span class="nav-label">Úkoly</span>
+      <span class="nav-badge" id="tasksBadge" aria-label="Počet nesplněných úkolů"></span>
+    </a>
+    <a href="#" class="nav-item" data-section="calendar">
+      <span class="nav-icon" aria-hidden="true">◫</span>
+      <span class="nav-label">Kalendář</span>
+    </a>
+    <a href="#" class="nav-item" data-section="habits">
+      <span class="nav-icon" aria-hidden="true">◎</span>
+      <span class="nav-label">Návyky</span>
+    </a>
+    <a href="#" class="nav-item" data-section="pomodoro">
+      <span class="nav-icon" aria-hidden="true">◷</span>
+      <span class="nav-label">Pomodoro</span>
+    </a>
+    <a href="#" class="nav-item" data-section="finance" id="navFinance">
+      <span class="nav-icon" aria-hidden="true">◈</span>
+      <span class="nav-label">Finance</span>
+    </a>
+    <a href="#" class="nav-item" data-section="goals">
+      <span class="nav-icon" aria-hidden="true">◉</span>
+      <span class="nav-label">Cíle</span>
+    </a>
+    <a href="#" class="nav-item" data-section="notes">
+      <span class="nav-icon" aria-hidden="true">◧</span>
+      <span class="nav-label">Poznámky</span>
+    </a>
+  </nav>
+
+  <!-- Patička sidebar -->
+  <div class="sidebar-footer">
+    <!-- Uživatelský panel -->
+    <div class="user-panel" id="userPanel">
+      <div class="user-avatar" id="userAvatar" aria-hidden="true">U</div>
+      <div class="user-meta">
+        <div class="user-email" id="userEmail">—</div>
+        <button class="logout-btn" id="logoutBtn">Odhlásit se →</button>
+      </div>
+    </div>
+
+    <!-- Akce patičky -->
+    <div class="footer-btns">
+      <button class="footer-btn theme-toggle" id="themeToggle" aria-label="Přepnout téma">
+        <span class="theme-icon" id="themeIcon">☽</span>
+        <span id="themeLabel">Světlý režim</span>
+      </button>
+      <button class="footer-btn help-btn" id="tourStartBtn" aria-label="Spustit průvodce aplikací">
+        <span>?</span>
+        <span>Nápověda</span>
+      </button>
+    </div>
+  </div>
+
+</aside>
+
+<!-- Overlay pro mobilní sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+
+<!-- ═══════════════════════════════════════
+     HLAVNÍ OBSAH
+═══════════════════════════════════════ -->
+<main class="main" id="mainContent">
+
+  <!-- Top bar -->
+  <header class="topbar" role="banner">
+    <button class="menu-toggle" id="menuToggle" aria-label="Otevřít menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    <h1 class="topbar-title" id="topbarTitle">Dashboard</h1>
+
+    <div class="topbar-right">
+      <div class="datetime-display" id="datetimeDisplay" aria-live="polite"></div>
+      <button class="notif-btn" id="notifBtn" aria-label="Oznámení">
+        <span class="notif-icon">🔔</span>
+        <span class="notif-dot hidden" id="notifDot"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Toast kontejner -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="false"></div>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SEKCE: DASHBOARD
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section active" id="section-dashboard" aria-labelledby="dashHeading">
+    <div class="section-header">
+      <div>
+        <h2 id="dashHeading">
+          Dobrý den <span id="greetEmoji" aria-hidden="true">👋</span>
+        </h2>
+        <p class="section-sub" id="dashDate"></p>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+
+      <!-- Stat karty -->
+      <div class="stats-row" id="tourStats">
+        <button class="stat-card" data-goto="tasks" aria-label="Přejít na úkoly">
+          <div class="stat-icon" aria-hidden="true">✓</div>
+          <div class="stat-body">
+            <div class="stat-value" id="statTasks">—</div>
+            <div class="stat-label">Úkoly dnes</div>
+          </div>
+        </button>
+        <button class="stat-card" data-goto="habits" aria-label="Přejít na návyky">
+          <div class="stat-icon" aria-hidden="true">◎</div>
+          <div class="stat-body">
+            <div class="stat-value" id="statHabits">—</div>
+            <div class="stat-label">Návyky splněny</div>
+          </div>
+        </button>
+        <button class="stat-card" data-goto="finance" aria-label="Přejít na finance">
+          <div class="stat-icon" aria-hidden="true">◈</div>
+          <div class="stat-body">
+            <div class="stat-value" id="statBalance">—</div>
+            <div class="stat-label">Celkový zůstatek</div>
+          </div>
+        </button>
+        <button class="stat-card" data-goto="goals" aria-label="Přejít na cíle">
+          <div class="stat-icon" aria-hidden="true">◉</div>
+          <div class="stat-body">
+            <div class="stat-value" id="statGoals">—</div>
+            <div class="stat-label">Aktivní cíle</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Widget: Dnešní úkoly -->
+      <div class="widget widget-tasks">
+        <div class="widget-header">
+          <h3>Dnešní úkoly</h3>
+          <button class="widget-action" data-goto="tasks">Vše →</button>
+        </div>
+        <div class="widget-body" id="dashTasksList">
+          <div class="skeleton-list"></div>
+        </div>
+      </div>
+
+      <!-- Widget: Návyky -->
+      <div class="widget widget-habits">
+        <div class="widget-header">
+          <h3>Dnešní návyky</h3>
+          <button class="widget-action" data-goto="habits">Vše →</button>
+        </div>
+        <div class="widget-body" id="dashHabitsList">
+          <div class="skeleton-list"></div>
+        </div>
+      </div>
+
+      <!-- Widget: Poslední poznámky -->
+      <div class="widget widget-notes">
+        <div class="widget-header">
+          <h3>Poslední poznámky</h3>
+          <button class="widget-action" data-goto="notes">Vše →</button>
+        </div>
+        <div class="widget-body" id="dashNotesList">
+          <div class="skeleton-list"></div>
+        </div>
+      </div>
+
+      <!-- Widget: Cíle -->
+      <div class="widget widget-goals">
+        <div class="widget-header">
+          <h3>Moje cíle</h3>
+          <button class="widget-action" data-goto="goals">Vše →</button>
+        </div>
+        <div class="widget-body" id="dashGoalsList">
+          <div class="skeleton-list"></div>
+        </div>
+      </div>
+
+    </div><!-- /.dashboard-grid -->
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SEKCE: ÚKOLY
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section" id="section-tasks" aria-labelledby="tasksHeading">
+    <div class="section-header">
+      <h2 id="tasksHeading">Úkoly</h2>
+      <button class="btn btn-primary" id="addTaskBtn">+ Nový úkol</button>
+    </div>
+
+    <!-- Filtry -->
+    <div class="filter-bar" id="tourTaskFilter">
+      <div class="filter-tabs" id="taskFilterTabs" role="tablist">
+        <button class="filter-tab active" data-filter="all" role="tab">Vše</button>
+        <button class="filter-tab" data-filter="today" role="tab">Dnes</button>
+        <button class="filter-tab" data-filter="active" role="tab">Aktivní</button>
+        <button class="filter-tab" data-filter="done" role="tab">Splněné</button>
+      </div>
+      <select class="filter-select" id="taskCategoryFilter" aria-label="Filtrovat podle kategorie">
+        <option value="">Všechny kategorie</option>
+        <option value="work">Práce</option>
+        <option value="personal">Osobní</option>
+        <option value="health">Zdraví</option>
+        <option value="finance">Finance</option>
+        <option value="other">Ostatní</option>
+      </select>
+      <select class="filter-select" id="taskSortSelect" aria-label="Řadit podle">
+        <option value="due-asc">Termín ↑</option>
+        <option value="due-desc">Termín ↓</option>
+        <option value="priority">Priorita ↓</option>
+        <option value="name">A–Z</option>
+      </select>
+    </div>
+
+    <div class="task-list" id="taskList" role="list"></div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SEKCE: KALENDÁŘ
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section" id="section-calendar" aria-labelledby="calHeading">
+    <div class="section-header">
+      <h2 id="calHeading">Kalendář</h2>
+      <button class="btn btn-primary" id="addEventBtn">+ Událost</button>
+    </div>
+
+    <div class="calendar-controls" id="tourCalendar">
+      <button class="btn btn-ghost" id="calPrev" aria-label="Předchozí">‹</button>
+      <div class="cal-view-toggle" role="group" aria-label="Zobrazení kalendáře">
+        <button class="view-btn active" data-view="month">Měsíc</button>
+        <button class="view-btn" data-view="week">Týden</button>
+      </div>
+      <span class="cal-title" id="calTitle" aria-live="polite"></span>
+      <button class="btn btn-ghost" id="calNext" aria-label="Následující">›</button>
+    </div>
+
+    <div id="calendarContainer" role="grid"></div>
+
+    <div class="events-list-section">
+      <h3>Nadcházející události</h3>
+      <div id="upcomingEvents"></div>
+    </div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SEKCE: NÁVYKY
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section" id="section-habits" aria-labelledby="habitsHeading">
+    <div class="section-header">
+      <h2 id="habitsHeading">Sledování návyků</h2>
+      <button class="btn btn-primary" id="addHabitBtn">+ Nový návyk</button>
+    </div>
+    <div class="habits-grid" id="habitsList" role="list"></div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SEKCE: POMODORO
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section" id="section-pomodoro" aria-labelledby="pomodoroHeading">
+    <div class="section-header">
+      <h2 id="pomodoroHeading">Pomodoro časovač</h2>
+    </div>
+
+    <div class="pomodoro-container" id="tourPomodoro">
+
+      <!-- Hlavní karta časovače -->
+      <div class="pomodoro-card">
+
+        <!-- Přepínač režimů -->
+        <div class="pomo-modes" role="group" aria-label="Režim časovače">
+          <button class="pomo-mode active" data-mode="work">Práce</button>
+          <button class="pomo-mode" data-mode="short">Krátká pauza</button>
+          <button class="pomo-mode" data-mode="long">Dlouhá pauza</button>
+        </div>
+
+        <!-- SVG kruhový časovač -->
+        <div class="timer-wrapper" role="timer" aria-label="Pomodoro časovač">
+          <svg class="timer-svg" viewBox="0 0 200 200" aria-hidden="true">
+            <circle class="timer-bg"       cx="100" cy="100" r="88"/>
+            <circle class="timer-progress" cx="100" cy="100" r="88"
+              id="timerProgress"
+              stroke-dasharray="553"
+              stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-display">
+            <div class="timer-time"  id="pomodoroTime"  aria-live="polite">25:00</div>
+            <div class="timer-label" id="pomodoroLabel">Čas pracovat</div>
+          </div>
+        </div>
+
+        <!-- Ovládání -->
+        <div class="pomo-controls">
+          <button class="btn btn-ghost pomo-btn" id="pomoReset">↺ Reset</button>
+          <button class="btn btn-primary pomo-btn pomo-main" id="pomoStartStop">▶ Start</button>
+          <button class="btn btn-ghost pomo-btn" id="pomoSkip">→ Přeskočit</button>
+        </div>
+
+        <!-- Počítadlo sezení -->
+        <div class="pomo-sessions">
+          <span>Dokončená sezení:</span>
+          <div class="session-dots" id="sessionDots" aria-hidden="true"></div>
+          <strong id="sessionCount">0</strong>
+        </div>
+
+        <!-- Výběr úkolu -->
+        <div class="pomo-task-select">
+          <label for="pomoTaskSelect">Pracuji na:</label>
+          <select id="pomoTaskSelect">
+            <option value="">— Vyberte úkol —</option>
+          </select>
+        </div>
+
+      </div><!-- /.pomodoro-card -->
+
+      <!-- Historie sezení -->
+      <div class="pomo-history-card">
+        <h3>Historie sezení</h3>
+        <div id="pomodoroHistory"></div>
+      </div>
+
+    </div><!-- /.pomodoro-container -->
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SEKCE: FINANCE
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section" id="section-finance" aria-labelledby="financeHeading">
+    <div class="section-header">
+      <h2 id="financeHeading">Finance</h2>
+      <div class="header-actions">
+        <button class="btn btn-ghost" id="manageCategoriesBtn">⚙ Kategorie</button>
+        <button class="btn btn-ghost" id="manageBudgetsBtn">◈ Rozpočty</button>
+        <button class="btn btn-primary" id="addTransactionBtn">+ Transakce</button>
+      </div>
+    </div>
+
+    <!-- Přehledové karty zůstatku -->
+    <div class="finance-overview" id="tourFinanceOverview">
+      <div class="balance-card main-balance">
+        <div class="balance-label">Celkový zůstatek</div>
+        <div class="balance-amount" id="totalBalance">—</div>
+      </div>
+      <div class="balance-card income">
+        <div class="balance-label">Příjmy (měsíc)</div>
+        <div class="balance-amount" id="monthIncome">—</div>
+      </div>
+      <div class="balance-card expense">
+        <div class="balance-label">Výdaje (měsíc)</div>
+        <div class="balance-amount" id="monthExpense">—</div>
+      </div>
+    </div>
+
+    <!-- Upozornění na překročení rozpočtu -->
+    <div id="budgetWarnings" role="alert" aria-live="polite"></div>
+
+    <!-- Grafy -->
+    <div class="charts-row" id="tourCharts">
+      <div class="chart-card">
+        <h3>Příjmy vs Výdaje (6 měsíců)</h3>
+        <canvas id="financeBarChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Výdaje dle kategorií</h3>
+        <canvas id="financePieChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Filtry transakcí -->
+    <div class="finance-controls">
+      <select id="financeMonthFilter" class="filter-select" aria-label="Filtrovat podle měsíce"></select>
+      <div class="filter-tabs" id="txTypeFilterTabs" role="tablist">
+        <button class="filter-tab active" data-type="all" role="tab">Vše</button>
+        <button class="filter-tab" data-type="income" role="tab">Příjmy</button>
+        <button class="filter-tab" data-type="expense" role="tab">Výdaje</button>
+      </div>
+    </div>
+
+    <div class="transaction-list" id="transactionList" role="list"></div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SEKCE: CÍLE
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section" id="section-goals" aria-labelledby="goalsHeading">
+    <div class="section-header">
+      <h2 id="goalsHeading">Cíle</h2>
+      <button class="btn btn-primary" id="addGoalBtn">+ Nový cíl</button>
+    </div>
+    <div class="goals-grid" id="goalsList" role="list"></div>
+  </section>
+
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       SEKCE: POZNÁMKY
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <section class="section" id="section-notes" aria-labelledby="notesHeading">
+    <div class="section-header">
+      <h2 id="notesHeading">Poznámky</h2>
+      <div class="header-actions">
+        <div class="search-inline">
+          <input
+            type="text"
+            class="filter-input"
+            id="noteSearch"
+            placeholder="Hledat v poznámkách…"
+            aria-label="Hledat v poznámkách"
+          />
+        </div>
+        <button class="btn btn-primary" id="addNoteBtn">+ Poznámka</button>
+      </div>
+    </div>
+    <div class="notes-grid" id="notesList" role="list"></div>
+  </section>
+
+</main><!-- /.main -->
+
+
+<!-- ═══════════════════════════════════════
+     MODALY
+═══════════════════════════════════════ -->
+
+<!-- ── MODAL: Úkol ── -->
+<div class="modal-overlay" id="taskModal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="taskModalTitle">Nový úkol</h2>
+      <button class="modal-close" data-close="taskModal" aria-label="Zavřít">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="taskName">Název *</label>
+        <input type="text" id="taskName" placeholder="Co chcete udělat?"/>
+        <span class="field-error" id="taskNameErr"></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="taskCategory">Kategorie</label>
+          <select id="taskCategory">
+            <option value="work">Práce</option>
+            <option value="personal">Osobní</option>
+            <option value="health">Zdraví</option>
+            <option value="finance">Finance</option>
+            <option value="other">Ostatní</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="taskPriority">Priorita</label>
+          <select id="taskPriority">
+            <option value="low">Nízká</option>
+            <option value="medium" selected>Střední</option>
+            <option value="high">Vysoká</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="taskDue">Termín</label>
+        <input type="date" id="taskDue"/>
+      </div>
+      <div class="form-group">
+        <label for="taskDesc">Popis</label>
+        <textarea id="taskDesc" rows="3" placeholder="Volitelný popis…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="taskModal">Zrušit</button>
+      <button class="btn btn-primary" id="saveTaskBtn">Uložit úkol</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Událost ── -->
+<div class="modal-overlay" id="eventModal" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="eventModalTitle">Nová událost</h2>
+      <button class="modal-close" data-close="eventModal" aria-label="Zavřít">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="eventName">Název *</label>
+        <input type="text" id="eventName" placeholder="Název události"/>
+        <span class="field-error" id="eventNameErr"></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="eventDate">Datum</label>
+          <input type="date" id="eventDate"/>
+        </div>
+        <div class="form-group">
+          <label for="eventTime">Čas</label>
+          <input type="time" id="eventTime"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="eventDesc">Popis</label>
+        <textarea id="eventDesc" rows="2" placeholder="Volitelný popis…"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Barva</label>
+        <div class="color-picker" id="eventColorPicker" role="group" aria-label="Vyberte barvu">
+          <button type="button" class="color-dot active" data-color="#6C63FF" style="background:#6C63FF" aria-label="Fialová"></button>
+          <button type="button" class="color-dot" data-color="#FF6584" style="background:#FF6584" aria-label="Červená"></button>
+          <button type="button" class="color-dot" data-color="#43D9AD" style="background:#43D9AD" aria-label="Zelená"></button>
+          <button type="button" class="color-dot" data-color="#FFB347" style="background:#FFB347" aria-label="Oranžová"></button>
+          <button type="button" class="color-dot" data-color="#64C8FF" style="background:#64C8FF" aria-label="Modrá"></button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="eventModal">Zrušit</button>
+      <button class="btn btn-primary" id="saveEventBtn">Uložit událost</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Návyk ── -->
+<div class="modal-overlay" id="habitModal" role="dialog" aria-modal="true" aria-labelledby="habitModalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="habitModalTitle">Nový návyk</h2>
+      <button class="modal-close" data-close="habitModal" aria-label="Zavřít">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="habitName">Název *</label>
+        <input type="text" id="habitName" placeholder="Název návyku"/>
+        <span class="field-error" id="habitNameErr"></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="habitIcon">Ikona (emoji)</label>
+          <input type="text" id="habitIcon" placeholder="💧" maxlength="2"/>
+        </div>
+        <div class="form-group">
+          <label for="habitColor">Barva</label>
+          <input type="color" id="habitColor" value="#6C63FF"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="habitGoal">Cílový počet dní</label>
+        <input type="number" id="habitGoal" value="30" min="1" max="365"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="habitModal">Zrušit</button>
+      <button class="btn btn-primary" id="saveHabitBtn">Uložit návyk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Transakce ── -->
+<div class="modal-overlay" id="transactionModal" role="dialog" aria-modal="true" aria-labelledby="txModalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="txModalTitle">Nová transakce</h2>
+      <button class="modal-close" data-close="transactionModal" aria-label="Zavřít">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Typ</label>
+        <div class="toggle-group" id="txTypeToggle" role="group" aria-label="Typ transakce">
+          <button class="toggle-btn active" data-value="expense">Výdaj</button>
+          <button class="toggle-btn" data-value="income">Příjem</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="txDesc">Popis *</label>
+        <input type="text" id="txDesc" placeholder="Co to bylo?"/>
+        <span class="field-error" id="txDescErr"></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="txAmount">Částka (Kč) *</label>
+          <input type="number" id="txAmount" placeholder="0" min="0.01" step="0.01"/>
+          <span class="field-error" id="txAmountErr"></span>
+        </div>
+        <div class="form-group">
+          <label for="txDate">Datum</label>
+          <input type="date" id="txDate"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="txCategory">Kategorie</label>
+        <select id="txCategory"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="transactionModal">Zrušit</button>
+      <button class="btn btn-primary" id="saveTxBtn">Uložit transakci</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Správa kategorií ── -->
+<div class="modal-overlay" id="categoriesModal" role="dialog" aria-modal="true" aria-labelledby="categoriesModalTitle">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h2 id="categoriesModalTitle">Správa kategorií</h2>
+      <button class="modal-close" data-close="categoriesModal" aria-label="Zavřít">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Přidání nové kategorie -->
+      <div class="new-cat-form">
+        <div class="form-row" style="align-items:flex-end">
+          <div class="form-group">
+            <label for="catName">Název kategorie</label>
+            <input type="text" id="catName" placeholder="Název"/>
+          </div>
+          <div class="form-group">
+            <label for="catIcon">Ikona</label>
+            <input type="text" id="catIcon" placeholder="🎯" maxlength="2"/>
+          </div>
+          <div class="form-group">
+            <label for="catType">Typ</label>
+            <select id="catType">
+              <option value="expense">Výdaj</option>
+              <option value="income">Příjem</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:0 0 auto">
+            <label>&nbsp;</label>
+            <button class="btn btn-primary" id="addCatBtn" style="width:100%">+ Přidat</button>
+          </div>
+        </div>
+        <span class="field-error" id="catNameErr"></span>
+      </div>
+      <hr class="modal-divider"/>
+      <div id="categoriesList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="categoriesModal">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Rozpočty ── -->
+<div class="modal-overlay" id="budgetsModal" role="dialog" aria-modal="true" aria-labelledby="budgetsModalTitle">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h2 id="budgetsModalTitle">Měsíční rozpočty</h2>
+      <button class="modal-close" data-close="budgetsModal" aria-label="Zavřít">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-hint">Nastavte limity pro výdajové kategorie. Při překročení 80 % dostanete upozornění.</p>
+      <div id="budgetsList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="budgetsModal">Zrušit</button>
+      <button class="btn btn-primary" id="saveBudgetsBtn">Uložit rozpočty</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Cíl ── -->
+<div class="modal-overlay" id="goalModal" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="goalModalTitle">Nový cíl</h2>
+      <button class="modal-close" data-close="goalModal" aria-label="Zavřít">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="goalName">Název cíle *</label>
+        <input type="text" id="goalName" placeholder="Čeho chcete dosáhnout?"/>
+        <span class="field-error" id="goalNameErr"></span>
+      </div>
+      <div class="form-group">
+        <label for="goalDesc">Popis</label>
+        <textarea id="goalDesc" rows="2" placeholder="Volitelný popis…"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="goalCurrent">Aktuální hodnota</label>
+          <input type="number" id="goalCurrent" value="0" min="0"/>
+        </div>
+        <div class="form-group">
+          <label for="goalTarget">Cílová hodnota *</label>
+          <input type="number" id="goalTarget" value="100" min="0.01"/>
+          <span class="field-error" id="goalTargetErr"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="goalUnit">Jednotka</label>
+          <input type="text" id="goalUnit" placeholder="%, Kč, km…"/>
+        </div>
+        <div class="form-group">
+          <label for="goalDeadline">Termín</label>
+          <input type="date" id="goalDeadline"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="goalModal">Zrušit</button>
+      <button class="btn btn-primary" id="saveGoalBtn">Uložit cíl</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Poznámka ── -->
+<div class="modal-overlay" id="noteModal" role="dialog" aria-modal="true" aria-labelledby="noteModalTitle">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h2 id="noteModalTitle">Nová poznámka</h2>
+      <button class="modal-close" data-close="noteModal" aria-label="Zavřít">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="noteTitle">Název</label>
+        <input type="text" id="noteTitle" placeholder="Název poznámky"/>
+      </div>
+      <div class="form-group">
+        <label>Obsah</label>
+        <!-- Markdown toolbar -->
+        <div class="note-toolbar" role="toolbar" aria-label="Formátování textu">
+          <button type="button" class="note-tool" data-cmd="bold"   title="Tučné (Ctrl+B)"><b>B</b></button>
+          <button type="button" class="note-tool" data-cmd="italic" title="Kurzíva (Ctrl+I)"><i>I</i></button>
+          <button type="button" class="note-tool" data-cmd="h2"     title="Nadpis 2">H2</button>
+          <button type="button" class="note-tool" data-cmd="li"     title="Odrážka">≡</button>
+          <button type="button" class="note-tool" data-cmd="hr"     title="Oddělovač">—</button>
+          <span class="toolbar-sep" aria-hidden="true"></span>
+          <button type="button" class="note-tool preview-toggle" id="previewToggle">
+            👁 Náhled
+          </button>
+        </div>
+        <!-- Editor / Preview -->
+        <div class="note-editor-wrap">
+          <textarea
+            id="noteContent"
+            rows="12"
+            placeholder="Začněte psát… (**tučné**, *kurzíva*, ## Nadpis, - seznam)"
+          ></textarea>
+          <div id="notePreview" class="note-preview hidden" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="noteCategory">Štítek / Kategorie</label>
+        <input type="text" id="noteCategory" placeholder="např. Práce, Nápady, Osobní…"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="noteModal">Zrušit</button>
+      <button class="btn btn-primary" id="saveNoteBtn">Uložit poznámku</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Potvrzení smazání ── -->
+<div class="modal-overlay" id="confirmModal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="modal modal-small">
+    <div class="modal-header">
+      <h2 id="confirmTitle">Potvrdit smazání</h2>
+    </div>
+    <div class="modal-body">
+      <p id="confirmMsg" class="confirm-text">Opravdu chcete smazat tuto položku? Tato akce je nevratná.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="confirmModal">Zrušit</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Smazat</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     VYHLEDÁVÁNÍ (overlay panel)
+═══════════════════════════════════════ -->
+<div class="search-overlay" id="searchOverlay" role="dialog" aria-modal="true" aria-label="Výsledky vyhledávání">
+  <div class="search-results-panel">
+    <div class="search-results-header">
+      <span id="searchResultsTitle">Výsledky hledání</span>
+      <button id="closeSearch" aria-label="Zavřít vyhledávání">✕</button>
+    </div>
+    <div id="searchResults" role="list"></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     INTERAKTIVNÍ PRŮVODCE (TOUR)
+═══════════════════════════════════════ -->
+
+<!-- Čtyři pruhy stínu kolem zvýrazněného prvku -->
+<div class="tour-shadow tour-shadow-top"    id="tourShadowTop"    aria-hidden="true"></div>
+<div class="tour-shadow tour-shadow-bottom" id="tourShadowBottom" aria-hidden="true"></div>
+<div class="tour-shadow tour-shadow-left"   id="tourShadowLeft"   aria-hidden="true"></div>
+<div class="tour-shadow tour-shadow-right"  id="tourShadowRight"  aria-hidden="true"></div>
+
+<!-- Zvýrazňující rámeček -->
+<div class="tour-highlight-ring" id="tourHighlightRing" aria-hidden="true"></div>
+
+<!-- Bublina průvodce -->
+<div class="tour-bubble" id="tourBubble" role="dialog" aria-modal="false" aria-labelledby="tourTitle">
+
+  <div class="tour-bubble-header">
+    <span class="tour-step-counter" id="tourStepCounter">1 / 8</span>
+    <button class="tour-close" id="tourClose" aria-label="Zavřít průvodce">✕</button>
+  </div>
+
+  <div class="tour-bubble-icon" id="tourIcon" aria-hidden="true">⊞</div>
+  <h3 class="tour-bubble-title" id="tourTitle">Název kroku</h3>
+  <p  class="tour-bubble-text"  id="tourText">Popis kroku</p>
+
+  <!-- Progress tečky -->
+  <div class="tour-progress-dots" id="tourDots" aria-hidden="true"></div>
+
+  <div class="tour-bubble-footer">
+    <button class="tour-skip" id="tourSkip">Přeskočit průvodce</button>
+    <div class="tour-nav">
+      <button class="tour-prev" id="tourPrev" aria-label="Předchozí krok">‹ Zpět</button>
+      <button class="tour-next" id="tourNext" aria-label="Další krok">Další ›</button>
+    </div>
+  </div>
+
+</div><!-- /.tour-bubble -->
+
+
+<!-- ═══════════════════════════════════════
+     SKRIPTY
+═══════════════════════════════════════ -->
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- Moduly aplikace (pořadí je důležité!) -->
+<script src="js/supabase.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/tasks.js"></script>
+<script src="js/finance.js"></script>
+<script src="js/habits.js"></script>
+<script src="js/goals.js"></script>
+<script src="js/notes.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/pomodoro.js"></script>
+<script src="js/tour.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

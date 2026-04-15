@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="cs" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Planify — Přihlášení</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/auth.css"/>
+</head>
+<body>
+
+  <!-- Animované pozadí -->
+  <div class="auth-bg" aria-hidden="true">
+    <div class="auth-orb orb1"></div>
+    <div class="auth-orb orb2"></div>
+    <div class="auth-orb orb3"></div>
+    <div class="auth-grid"></div>
+  </div>
+
+  <main class="auth-wrap">
+    <!-- Karta -->
+    <div class="auth-card">
+
+      <!-- Logo -->
+      <div class="auth-logo">
+        <picture>
+          <!-- Světlý režim: logo-text-svet.png -->
+          <source media="(prefers-color-scheme: light)" srcset="img/logo-text-svet.png"/>
+          <!-- Výchozí (tmavý): logo-text-tmav.png -->
+          <img
+            src="img/logo-text-tmav.png"
+            alt="Planify"
+            class="logo-img"
+            id="authLogoImg"
+          />
+        </picture>
+      </div>
+
+      <p class="auth-tagline">Váš osobní produktivní dashboard</p>
+
+      <!-- Přepínač tabů -->
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" data-tab="login" role="tab" aria-selected="true">
+          Přihlásit se
+        </button>
+        <button class="auth-tab" data-tab="register" role="tab" aria-selected="false">
+          Registrace
+        </button>
+      </div>
+
+      <!-- ── PŘIHLÁŠENÍ ── -->
+      <form class="auth-form active" id="loginForm" novalidate autocomplete="on">
+
+        <div class="form-group">
+          <label for="loginEmail">E-mail</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉</span>
+            <input
+              type="email"
+              id="loginEmail"
+              placeholder="vas@email.cz"
+              autocomplete="email"
+              required
+            />
+          </div>
+          <span class="field-error" id="loginEmailErr" role="alert"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Heslo</label>
+          <div class="input-wrap password-wrap">
+            <span class="input-icon">🔒</span>
+            <input
+              type="password"
+              id="loginPassword"
+              placeholder="Vaše heslo"
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" class="toggle-pw" data-target="loginPassword" aria-label="Zobrazit heslo">
+              <span class="eye-icon">👁</span>
+            </button>
+          </div>
+          <span class="field-error" id="loginPasswordErr" role="alert"></span>
+        </div>
+
+        <!-- Globální chyba -->
+        <div class="form-error hidden" id="loginError" role="alert"></div>
+
+        <button type="submit" class="btn-auth" id="loginBtn">
+          <span class="btn-label">Přihlásit se</span>
+          <span class="btn-spinner hidden" aria-hidden="true">↻</span>
+        </button>
+
+      </form>
+
+      <!-- ── REGISTRACE ── -->
+      <form class="auth-form" id="registerForm" novalidate autocomplete="on">
+
+        <div class="form-group">
+          <label for="regEmail">E-mail</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉</span>
+            <input
+              type="email"
+              id="regEmail"
+              placeholder="vas@email.cz"
+              autocomplete="email"
+              required
+            />
+          </div>
+          <span class="field-error" id="regEmailErr" role="alert"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="regPassword">Heslo</label>
+          <div class="input-wrap password-wrap">
+            <span class="input-icon">🔒</span>
+            <input
+              type="password"
+              id="regPassword"
+              placeholder="Min. 8 znaků"
+              autocomplete="new-password"
+              required
+              minlength="8"
+            />
+            <button type="button" class="toggle-pw" data-target="regPassword" aria-label="Zobrazit heslo">
+              <span class="eye-icon">👁</span>
+            </button>
+          </div>
+          <div class="pw-strength" id="pwStrength">
+            <div class="pw-strength-bar" id="pwStrengthBar"></div>
+          </div>
+          <span class="field-error" id="regPasswordErr" role="alert"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="regPassword2">Heslo znovu</label>
+          <div class="input-wrap password-wrap">
+            <span class="input-icon">🔒</span>
+            <input
+              type="password"
+              id="regPassword2"
+              placeholder="Zopakujte heslo"
+              autocomplete="new-password"
+              required
+            />
+            <button type="button" class="toggle-pw" data-target="regPassword2" aria-label="Zobrazit heslo">
+              <span class="eye-icon">👁</span>
+            </button>
+          </div>
+          <span class="field-error" id="regPassword2Err" role="alert"></span>
+        </div>
+
+        <div class="form-error hidden" id="registerError" role="alert"></div>
+        <div class="form-success hidden" id="registerSuccess" role="status"></div>
+
+        <button type="submit" class="btn-auth" id="registerBtn">
+          <span class="btn-label">Vytvořit účet</span>
+          <span class="btn-spinner hidden" aria-hidden="true">↻</span>
+        </button>
+
+      </form>
+
+      <p class="auth-footer">
+        <span>🔐</span> Data jsou bezpečně uložena a šifrována pomocí Supabase.
+      </p>
+
+    </div><!-- /.auth-card -->
+  </main>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+
+</body>
+</html>
