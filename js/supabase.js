@@ -46,7 +46,7 @@ if (!window.supabase) {
       document.body.prepend(banner);
     });
   }
-}
+
 
 /* ═══════════════════════════════════════════════════════
    GLOBÁLNÍ STAV APLIKACE
