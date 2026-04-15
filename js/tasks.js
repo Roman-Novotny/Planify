@@ -182,7 +182,7 @@ async function toggleTask(id) {
   renderDashboard();
 
   // Sync s DB
-  const { error } = await supabase
+  const { error } = await window.supabaseClient
     .from('tasks')
     .update({ done: task.done, updated_at: new Date().toISOString() })
     .eq('id', id);
@@ -217,7 +217,7 @@ async function deleteTask(id) {
   renderDashboard();
   if (typeof updatePomoTaskSelect === 'function') updatePomoTaskSelect();
 
-  const { error } = await supabase.from('tasks').delete().eq('id', id);
+  const { error } = await window.supabaseClient.from('tasks').delete().eq('id', id);
 
   if (error) {
     // Rollback
@@ -301,7 +301,7 @@ async function saveTask() {
   try {
     if (taskEditId) {
       // ── Aktualizace ─────────────────────────────────
-      const { data, error } = await supabase
+      const { data, error } = await window.supabaseClient
         .from('tasks')
         .update(payload)
         .eq('id', taskEditId)
@@ -320,7 +320,7 @@ async function saveTask() {
       payload.done       = false;
       payload.created_at = new Date().toISOString();
 
-      const { data, error } = await supabase
+      const { data, error } = await window.supabaseClient
         .from('tasks')
         .insert(payload)
         .select()
