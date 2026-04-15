@@ -13,21 +13,25 @@ const SUPABASE_ANON = 'sb_publishable_WuC8bsQceIeAMXhCKE7zYQ_Jk0NrGBu'; // ← v
 /* ─────────────────────────────────────────────────────
    INICIALIZACE KLIENTA
 ───────────────────────────────────────────────────── */
-let supabase;
+/* ─────────────────────────────────────
+   INICIALIZACE SUPABASE (CDN v2)
+───────────────────────────────────── */
 
-try {
-  if (typeof window.supabase === 'undefined') {
-    throw new Error('Supabase CDN library není načtena.');
-  }
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-    auth: {
-      autoRefreshToken: true,
-      persistSession:   true,
-      detectSessionInUrl: false,
-    },
-  });
-} catch (e) {
-  console.error('[Planify] Supabase init chyba:', e.message);
+if (!window.supabase) {
+  console.error('[Planify] Supabase CDN není načtena');
+} else {
+  window.supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON,
+    {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false,
+      },
+    }
+  );
+}
   // Zobrazíme bannner pokud credentials nejsou nastaveny
   if (SUPABASE_URL.includes('XXXX') || SUPABASE_ANON.includes('XXXX')) {
     document.addEventListener('DOMContentLoaded', () => {
