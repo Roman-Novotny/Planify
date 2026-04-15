@@ -242,7 +242,7 @@ async function saveNote() {
   try {
     if (noteEditId) {
       // ── Aktualizace ─────────────────────────────────
-      const { data, error } = await supabase
+      const { data, error } = await window.supabaseClient
         .from('notes')
         .update(payload)
         .eq('id', noteEditId)
@@ -259,7 +259,7 @@ async function saveNote() {
       // ── Nová poznámka ───────────────────────────────
       payload.created_at = now;
 
-      const { data, error } = await supabase
+      const { data, error } = await window.supabaseClient
         .from('notes')
         .insert(payload)
         .select()
@@ -294,7 +294,7 @@ async function deleteNote(id) {
   renderNotes();
   renderDashboard();
 
-  const { error } = await supabase.from('notes').delete().eq('id', id);
+  const { error } = await window.supabaseClient.from('notes').delete().eq('id', id);
 
   if (error) {
     window.APP_DATA.notes.splice(idx, 0, removed);
