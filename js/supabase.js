@@ -7,8 +7,8 @@
    ⚠️  NASTAVENÍ — vyplňte vaše Supabase credentials
    Najdete v: Supabase Dashboard → Settings → API
 ───────────────────────────────────────────────────── */
-const SUPABASE_URL  = 'https://XXXXXXXXXXXX.supabase.co';  // ← váš Project URL
-const SUPABASE_ANON = 'eyXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'; // ← váš anon/public key
+const SUPABASE_URL  = 'https://jjmuolhqtfddjsrhwlnn.supabase.co';  // ← váš Project URL
+const SUPABASE_ANON = 'sb_publishable_WuC8bsQceIeAMXhCKE7zYQ_Jk0NrGBu'; // ← váš anon/public key
 
 /* ─────────────────────────────────────────────────────
    INICIALIZACE KLIENTA
