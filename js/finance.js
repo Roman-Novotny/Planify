@@ -479,7 +479,7 @@ async function saveTransaction() {
   try {
     if (txEditId) {
       // Aktualizace
-      const { data, error } = await supabase
+      const { data, error } = await window.supabaseClient
         .from('finance_records')
         .update(payload)
         .eq('id', txEditId)
@@ -494,7 +494,7 @@ async function saveTransaction() {
       showToast('Transakce upravena', 'success');
     } else {
       // Vložení
-      const { data, error } = await supabase
+      const { data, error } = await window.supabaseClient
         .from('finance_records')
         .insert(payload)
         .select()
@@ -529,7 +529,7 @@ async function deleteTransaction(id) {
   renderFinance();
   renderDashboard();
 
-  const { error } = await supabase.from('finance_records').delete().eq('id', id);
+  const { error } = await window.supabaseClient.from('finance_records').delete().eq('id', id);
 
   if (error) {
     window.APP_DATA.transactions.splice(idx, 0, removed);
@@ -595,7 +595,7 @@ function _renderCategoriesList() {
     list.querySelectorAll('[data-del-cat]').forEach(btn => {
       btn.addEventListener('click', async () => {
         const catId = btn.dataset.delCat;
-        const { error } = await supabase.from('finance_categories').delete().eq('id', catId);
+        const { error } = await window.supabaseClient.from('finance_categories').delete().eq('id', catId);
         if (!error) {
           window.APP_DATA.finCategories = window.APP_DATA.finCategories.filter(c => c.id !== catId);
           _renderCategoriesList();
@@ -625,7 +625,7 @@ document.getElementById('addCatBtn')?.addEventListener('click', async () => {
 
   errEl.textContent = '';
 
-  const { data, error } = await supabase
+  const { data, error } = await window.supabaseClient
     .from('finance_categories')
     .insert({ name, icon, type, user_id: currentUser.id })
     .select()
@@ -698,7 +698,7 @@ document.getElementById('saveBudgetsBtn')?.addEventListener('click', async () =>
 
   try {
     // Smazat stávající pro tento měsíc
-    await supabase
+    await window.supabaseClient
       .from('budgets')
       .delete()
       .eq('user_id', currentUser.id)
@@ -706,7 +706,7 @@ document.getElementById('saveBudgetsBtn')?.addEventListener('click', async () =>
 
     // Vložit nové
     if (upserts.length > 0) {
-      const { data, error } = await supabase.from('budgets').insert(upserts).select();
+      const { data, error } = await window.supabaseClient.from('budgets').insert(upserts).select();
       if (error) throw error;
       window.APP_DATA.budgets = [
         ...window.APP_DATA.budgets.filter(b => b.month !== finMonth),
