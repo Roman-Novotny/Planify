@@ -56,6 +56,17 @@ function applySettings(settings) {
 /* ─────────────────────────────────────────────────────
    RENDER SEKCE NASTAVENÍ
 ───────────────────────────────────────────────────── */
+
+/* ─────────────────────────────────────────────────────
+   Synchronizace tlačítka tématu v sidebarú
+───────────────────────────────────────────────────── */
+function _syncThemeButton(theme) {
+  const labelEl = document.getElementById('themeLabel');
+  const iconEl  = document.getElementById('themeIcon');
+  if (labelEl) labelEl.textContent = theme === 'dark' ? 'Světlý režim' : 'Tmavý režim';
+  if (iconEl)  iconEl.textContent  = theme === 'dark' ? '☽' : '☀';
+}
+
 function renderSettings() {
   const section = document.getElementById('section-settings');
   if (!section) return;
@@ -104,7 +115,7 @@ function renderSettings() {
       </div>
     </div>
 
-    <div class="settings-grid">
+    <div class="settings-grid" style="max-width:100%">
 
       <!-- Statistiky profilu -->
       <div class="settings-card">
@@ -369,6 +380,8 @@ function renderSettings() {
       const t = btn.dataset.setTheme;
       const s = loadSettings(); s.theme = t; saveSettings(s);
       if (typeof applyTheme === 'function') applyTheme(t);
+      // Synchronizovat label tlačítka v sidebarú
+      _syncThemeButton(t);
       renderSettings();
       showToast(`Režim změněn na ${t === 'dark' ? 'tmavý 🌙' : 'světlý ☀️'}`, 'success');
     });
@@ -481,6 +494,8 @@ function renderSettings() {
 function initSettings() {
   const settings = loadSettings();
   applySettings(settings);
+  // Synchronizovat tlačítko tématu
+  _syncThemeButton(settings.theme || 'dark');
   // Aplikovat uloženou akcent barvu
   if (settings.accentColor && settings.accentColor !== '#6366F1') {
     document.documentElement.style.setProperty('--accent', settings.accentColor);
