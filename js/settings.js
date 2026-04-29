@@ -486,3 +486,12 @@ function initSettings() {
     document.documentElement.style.setProperty('--accent', settings.accentColor);
   }
 }
+
+
+/* ─────────────────────────────────────────────────────
+   AUTO-INICIALIZACE
+───────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  // Aplikovat uložená nastavení ihned
+  if (typeof initSettings === 'function') initSettings();
+});
