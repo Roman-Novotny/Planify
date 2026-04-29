@@ -1,14 +1,11 @@
 /* ═══════════════════════════════════════════════════════
-   Planify — js/app.js
-   Hlavní logika aplikace:
-   inicializace, navigace, načítání dat, dashboard,
-   vyhledávání, téma, přepínání loga
+   Planify — js/app.js  v3
+   Navigace, inicializace, dashboard, guest mode,
+   cookie consent, XP bar, chybové zprávy
 ═══════════════════════════════════════════════════════ */
 
-/* ─────────────────────────────────────────────────────
-   GLOBÁLNÍ PROMĚNNÉ
-───────────────────────────────────────────────────── */
-let currentUser = null; // aktuálně přihlášený uživatel
+let currentUser = null;
+let _isGuest    = false; // Přihlášen jako host?
 
 const SECTION_NAMES = {
   dashboard: 'Dashboard',
@@ -21,180 +18,206 @@ const SECTION_NAMES = {
   notes:     'Poznámky',
 };
 
-/* ═══════════════════════════════════════════════════════
-   NAVIGACE
-═══════════════════════════════════════════════════════ */
-
-/**
- * Přejde na danou sekci aplikace
- * @param {string} section  klíč sekce (dashboard, tasks, …)
- */
+/* ══ NAVIGACE ══ */
 function navigate(section) {
-  // Schovat všechny sekce
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-
-  // Zobrazit cílovou sekci
   const target = document.getElementById(`section-${section}`);
-  if (!target) { console.warn('[Planify] navigate: sekce nenalezena:', section); return; }
+  if (!target) return;
   target.classList.add('active');
 
-  // Aktualizovat navigaci v sidebarú
   document.querySelectorAll('.nav-item').forEach(a => {
     const isActive = a.dataset.section === section;
     a.classList.toggle('active', isActive);
     a.setAttribute('aria-current', isActive ? 'page' : 'false');
   });
 
-  // Aktualizovat nadpis v topbaru
   const titleEl = document.getElementById('topbarTitle');
   if (titleEl) titleEl.textContent = SECTION_NAMES[section] || section;
 
-  // Sekce-specifické akce při navigaci
   switch (section) {
-    case 'dashboard': renderDashboard();       break;
-    case 'calendar':  renderCalendar();        break;
-    case 'finance':   renderFinance();         break;
+    case 'dashboard': renderDashboard(); break;
+    case 'calendar':  renderCalendar(); break;
+    case 'finance':   renderFinance(); break;
     case 'pomodoro':  renderPomodoroHistory(); break;
   }
 
-  // Zavřít sidebar na mobilu
   if (window.innerWidth <= 960) closeSidebar();
-
-  // Scroll na vrch
   document.getElementById('mainContent')?.scrollTo(0, 0);
 }
 
-// Kliknutí na nav položky
 document.querySelectorAll('.nav-item').forEach(a => {
-  a.addEventListener('click', e => {
-    e.preventDefault();
-    navigate(a.dataset.section);
-  });
+  a.addEventListener('click', e => { e.preventDefault(); navigate(a.dataset.section); });
 });
 
-// Kliknutí na [data-goto] (widgety, stat karty…)
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-goto]');
-  if (el && !e.defaultPrevented) {
-    navigate(el.dataset.goto);
-  }
+  if (el && !e.defaultPrevented) navigate(el.dataset.goto);
 });
 
-/* ═══════════════════════════════════════════════════════
-   SIDEBAR — mobilní ovládání
-═══════════════════════════════════════════════════════ */
+/* ══ SIDEBAR MOBIL ══ */
 function openSidebar() {
   document.getElementById('sidebar').classList.add('open');
   document.getElementById('sidebarOverlay').classList.add('open');
   document.getElementById('menuToggle')?.setAttribute('aria-expanded', 'true');
 }
-
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
   document.getElementById('menuToggle')?.setAttribute('aria-expanded', 'false');
 }
-
 document.getElementById('menuToggle')?.addEventListener('click', openSidebar);
 document.getElementById('sidebarClose')?.addEventListener('click', closeSidebar);
 document.getElementById('sidebarOverlay')?.addEventListener('click', closeSidebar);
 
-/* ═══════════════════════════════════════════════════════
-   TÉMA & LOGO
-═══════════════════════════════════════════════════════ */
-
-/**
- * Aplikuje téma a přepne logo obrázek
- * @param {'dark'|'light'} theme
- */
+/* ══ TÉMA & LOGO ══ */
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   localStorage.setItem('planify_theme', theme);
 
-  // Aktualizovat popis tlačítka
   const labelEl = document.getElementById('themeLabel');
   if (labelEl) labelEl.textContent = theme === 'dark' ? 'Světlý režim' : 'Tmavý režim';
 
-  // Přepnout logo v sidebarú
-  const logoImg = document.getElementById('sidebarLogoImg');
-  if (logoImg) {
-    logoImg.src = theme === 'light' ? 'img/logo-text-svet.png' : 'img/logo-text-tmav.png';
-  }
-
-  // Přepnout logo na loading screenu (pro konzistenci)
+  const src = theme === 'light' ? 'img/logo-text-svet.png' : 'img/logo-text-tmav.png';
+  const logoImg     = document.getElementById('sidebarLogoImg');
   const loadingLogo = document.getElementById('loadingLogoImg');
-  if (loadingLogo) {
-    loadingLogo.src = theme === 'light' ? 'img/logo-text-svet.png' : 'img/logo-text-tmav.png';
-  }
+  if (logoImg)     logoImg.src     = src;
+  if (loadingLogo) loadingLogo.src = src;
 
-  // Překreslit finance grafy (Chart.js barvy)
   if (typeof renderFinanceCharts === 'function') {
-    try { renderFinanceCharts(); } catch (e) { /* grafy nemusí být inicializovány */ }
+    try { renderFinanceCharts(); } catch {}
   }
 }
 
 document.getElementById('themeToggle')?.addEventListener('click', () => {
-  const current = document.documentElement.dataset.theme || 'dark';
-  applyTheme(current === 'dark' ? 'light' : 'dark');
+  applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
 });
 
-/* ═══════════════════════════════════════════════════════
-   DATETIME DISPLAY
-═══════════════════════════════════════════════════════ */
+/* ══ XP BAR ══ */
+function ensureXpBar() {
+  if (document.getElementById('xpBarContainer')) return;
+  const footer = document.querySelector('.sidebar-footer');
+  if (!footer) return;
+  const bar = document.createElement('div');
+  bar.className = 'xp-bar-container';
+  bar.id        = 'xpBarContainer';
+  bar.innerHTML = `
+    <div class="xp-bar-header">
+      <span class="xp-level-badge" id="xpLevelBadge">🌱 Úr. 1</span>
+      <span class="xp-points" id="xpPoints">0 XP</span>
+    </div>
+    <div class="xp-bar-track">
+      <div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div>
+    </div>`;
+  const userPanel = footer.querySelector('.user-panel');
+  footer.insertBefore(bar, userPanel);
+}
+
+/* ══ DATETIME ══ */
 function updateDatetime() {
   const el = document.getElementById('datetimeDisplay');
   if (!el) return;
   el.textContent = new Date().toLocaleDateString('cs-CZ', {
-    weekday: 'short',
-    day:     'numeric',
-    month:   'short',
-    hour:    '2-digit',
-    minute:  '2-digit',
+    weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit',
   });
 }
 
-/* ═══════════════════════════════════════════════════════
-   ODHLÁŠENÍ
-═══════════════════════════════════════════════════════ */
+/* ══ ODHLÁŠENÍ ══ */
 document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-  try {
-    await window.supabaseClient.auth.signOut();
-  } catch (e) { /* ignorovat */ }
+  if (_isGuest) {
+    // Host se "odhlásí" — smazat guest data a jít na přihlášení
+    if (typeof exitGuestMode === 'function') exitGuestMode();
+    window.location.replace('index.html');
+    return;
+  }
+  try { await window.supabaseClient.auth.signOut(); } catch {}
   window.location.replace('index.html');
 });
 
-/* ═══════════════════════════════════════════════════════
-   NAČÍTÁNÍ DAT Z DATABÁZE
-═══════════════════════════════════════════════════════ */
+/* ══ GUEST BANNER ══ */
+function showGuestBanner() {
+  const banner = document.getElementById('guestBanner');
+  if (!banner) return;
+  banner.classList.remove('hidden');
 
-/**
- * Načte všechna data uživatele z Supabase paralelně
- */
+  // Tlačítko "Zaregistrovat se"
+  document.getElementById('guestRegisterBtn')?.addEventListener('click', () => {
+    if (typeof exitGuestMode === 'function') exitGuestMode();
+    window.location.href = 'index.html';
+  });
+
+  // Zavřít banner
+  document.getElementById('guestDismissBtn')?.addEventListener('click', () => {
+    banner.style.display = 'none';
+  });
+}
+
+/* ══ VAROVÁNÍ PŘI AKCÍCH HOSTA ══ */
+let _guestActionCount = 0;
+
+function guestActionWarning(actionName = 'Tato akce') {
+  _guestActionCount++;
+  // Každé 3. akci připomenout
+  if (_guestActionCount % 3 !== 1) return;
+
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = 'toast warning guest-save-toast';
+  toast.innerHTML = `
+    <span>⚠️</span>
+    <span>${escHtml(actionName)} je uložena pouze lokálně. 
+      <strong style="cursor:pointer;text-decoration:underline" id="guestToastLogin">
+        Přihlaste se
+      </strong> pro trvalé uložení.</span>`;
+  container.appendChild(toast);
+
+  toast.querySelector('#guestToastLogin')?.addEventListener('click', () => {
+    if (typeof exitGuestMode === 'function') exitGuestMode();
+    window.location.href = 'index.html';
+  });
+
+  setTimeout(() => {
+    toast.style.animation = 'toastOut 0.3s ease forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 6000);
+}
+
+/* ══ NAČTENÍ DAT ══ */
 async function loadAllData() {
+  const D = window.APP_DATA;
+
+  // ── Režim hosta — načíst z localStorage ──────────
+  if (_isGuest) {
+    try {
+      const gNotes  = localStorage.getItem('planify_guest_notes');
+      const gTasks  = localStorage.getItem('planify_guest_tasks');
+      const gHabits = localStorage.getItem('planify_guest_habits');
+      const gGoals  = localStorage.getItem('planify_guest_goals');
+      if (gNotes)  D.notes  = JSON.parse(gNotes);
+      if (gTasks)  D.tasks  = JSON.parse(gTasks);
+      if (gHabits) D.habits = JSON.parse(gHabits);
+      if (gGoals)  D.goals  = JSON.parse(gGoals);
+    } catch {}
+    loadPomodoroState();
+    return;
+  }
+
+  // ── Přihlášený uživatel — Supabase ────────────────
   const uid = currentUser.id;
-  const D   = window.APP_DATA;
+  const [tasksR, eventsR, habitsR, habitLogsR, txR, catR, budgetsR, goalsR, notesR] =
+    await Promise.all([
+      window.supabaseClient.from('tasks')              .select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+      window.supabaseClient.from('events')             .select('*').eq('user_id', uid).order('event_date'),
+      window.supabaseClient.from('habits')             .select('*').eq('user_id', uid).order('created_at'),
+      window.supabaseClient.from('habit_logs')         .select('*').eq('user_id', uid),
+      window.supabaseClient.from('finance_records')    .select('*').eq('user_id', uid).order('date', { ascending: false }),
+      window.supabaseClient.from('finance_categories') .select('*').eq('user_id', uid),
+      window.supabaseClient.from('budgets')            .select('*').eq('user_id', uid),
+      window.supabaseClient.from('goals')              .select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+      window.supabaseClient.from('notes')              .select('*').eq('user_id', uid).order('updated_at', { ascending: false }),
+    ]);
 
-  // Paralelní fetch — výrazně rychlejší než sekvenční
-  const [
-    tasksR, eventsR, habitsR, habitLogsR,
-    txR, catR, budgetsR, goalsR, notesR,
-  ] = await Promise.all([
-    window.supabaseClient.from('tasks')              .select('*').eq('user_id', uid).order('created_at', { ascending: false }),
-    window.supabaseClient.from('events')             .select('*').eq('user_id', uid).order('event_date'),
-    window.supabaseClient.from('habits')             .select('*').eq('user_id', uid).order('created_at'),
-    window.supabaseClient.from('habit_logs')         .select('*').eq('user_id', uid),
-    window.supabaseClient.from('finance_records')    .select('*').eq('user_id', uid).order('date', { ascending: false }),
-    window.supabaseClient.from('finance_categories') .select('*').eq('user_id', uid),
-    window.supabaseClient.from('budgets')            .select('*').eq('user_id', uid),
-    window.supabaseClient.from('goals')              .select('*').eq('user_id', uid).order('created_at', { ascending: false }),
-    window.supabaseClient.from('notes')              .select('*').eq('user_id', uid).order('updated_at', { ascending: false }),
-  ]);
-
-  // Logovat případné chyby (ne kritické — pokračujeme)
-  [tasksR, eventsR, habitsR, habitLogsR, txR, catR, budgetsR, goalsR, notesR]
-    .forEach((r, i) => { if (r.error) console.warn('[Planify] loadAllData warn #' + i, r.error.message); });
-
-  // Uložit do globálního stavu
   D.tasks         = tasksR.data        || [];
   D.events        = eventsR.data       || [];
   D.habits        = habitsR.data       || [];
@@ -204,19 +227,15 @@ async function loadAllData() {
   D.goals         = goalsR.data        || [];
   D.notes         = notesR.data        || [];
 
-  // Habit logy → hash mapa pro O(1) přístup
   D.habitLogs = {};
   (habitLogsR.data || []).forEach(log => {
     D.habitLogs[`${log.habit_id}_${log.log_date}`] = true;
   });
 
-  // Pomodoro z localStorage
   loadPomodoroState();
 }
 
-/* ═══════════════════════════════════════════════════════
-   RENDER VŠECH SEKCÍ
-═══════════════════════════════════════════════════════ */
+/* ══ RENDER VŠECH SEKCÍ ══ */
 function renderAll() {
   renderDashboard();
   if (typeof renderTasks    === 'function') renderTasks();
@@ -226,13 +245,9 @@ function renderAll() {
   if (typeof renderPomodoro === 'function') renderPomodoro();
 }
 
-/* ═══════════════════════════════════════════════════════
-   DASHBOARD
-═══════════════════════════════════════════════════════ */
+/* ══ DASHBOARD ══ */
 function renderDashboard() {
-  const D = window.APP_DATA;
-
-  // Pozdrav + emoji podle hodiny
+  const D    = window.APP_DATA;
   const hour = new Date().getHours();
   let emoji  = '🌙';
   if (hour >= 5  && hour < 12) emoji = '🌅';
@@ -241,82 +256,64 @@ function renderDashboard() {
 
   const greetEl = document.getElementById('greetEmoji');
   if (greetEl) greetEl.textContent = emoji;
-
   const dateEl = document.getElementById('dashDate');
   if (dateEl) dateEl.textContent = formatDate(today());
 
-  // ── Stat karty ──────────────────────────────────────
-
-  // Úkoly dnes
   const todayTasks = D.tasks.filter(t => isToday(t.due_date) && !t.done);
   const statT = document.getElementById('statTasks');
   if (statT) statT.textContent = todayTasks.length;
 
-  // Návyky (splněno/celkem)
   const doneHabits = D.habits.filter(h => D.habitLogs[`${h.id}_${today()}`]);
   const statH = document.getElementById('statHabits');
   if (statH) statH.textContent = `${doneHabits.length} / ${D.habits.length}`;
 
-  // Celkový zůstatek
-  const balance = D.transactions.reduce(
-    (s, t) => s + (t.type === 'income' ? +t.amount : -t.amount), 0
-  );
+  const balance = D.transactions.reduce((s, t) => s + (t.type === 'income' ? +t.amount : -t.amount), 0);
   const statB = document.getElementById('statBalance');
   if (statB) statB.textContent = formatCurrency(balance);
 
-  // Aktivní cíle (nenulový progress < 100%)
-  const activeGoals = D.goals.filter(g => {
-    const pct = g.target_value > 0 ? g.current_value / g.target_value : 0;
-    return pct < 1;
-  });
+  const activeGoals = D.goals.filter(g => g.target_value > 0 && g.current_value / g.target_value < 1);
   const statG = document.getElementById('statGoals');
   if (statG) statG.textContent = activeGoals.length;
 
-  // Badge počtu nesplněných úkolů
   const badge   = document.getElementById('tasksBadge');
   const pending = D.tasks.filter(t => !t.done).length;
   if (badge) badge.textContent = pending > 0 ? String(pending) : '';
 
-  // ── Widget: Dnešní úkoly ────────────────────────────
+  // Tasks widget
   const dashTasksEl = document.getElementById('dashTasksList');
   if (dashTasksEl) {
-    // Zobrazit dnešní + úkoly bez termínu (nesplněné)
-    const shown = D.tasks
-      .filter(t => isToday(t.due_date) || (!t.due_date && !t.done))
-      .slice(0, 6);
-
+    const shown = D.tasks.filter(t => isToday(t.due_date) || (!t.due_date && !t.done)).slice(0, 6);
     if (shown.length === 0) {
       dashTasksEl.innerHTML = '<div class="empty-state-small">Žádné úkoly na dnes 🎉</div>';
     } else {
       dashTasksEl.innerHTML = shown.map(t => `
         <div class="dash-task-item">
-          <div class="dash-check ${t.done ? 'done' : ''}"
-               data-quick-check="${escHtml(t.id)}"
-               role="checkbox"
-               aria-checked="${t.done}"
-               tabindex="0">
+          <div class="dash-check ${t.done ? 'done' : ''}" data-quick-check="${escHtml(t.id)}"
+               role="checkbox" aria-checked="${t.done}" tabindex="0">
             ${t.done ? '✓' : ''}
           </div>
           <span class="dash-task-name ${t.done ? 'done' : ''}">${escHtml(t.name)}</span>
         </div>`).join('');
 
-      // Quick toggle z dashboardu
       dashTasksEl.querySelectorAll('[data-quick-check]').forEach(el => {
         const toggle = async () => {
           const id   = el.dataset.quickCheck;
           const task = D.tasks.find(t => t.id === id);
           if (!task) return;
+          const wasNotDone = !task.done;
           task.done = !task.done;
-          // Okamžitá UI reakce
           renderDashboard();
           if (typeof renderTasks === 'function') renderTasks();
-          // Sync DB
-          const { error } = await supabase.from('tasks').update({ done: task.done }).eq('id', id);
-          if (error) {
-            task.done = !task.done; // revert
-            renderDashboard();
-            showToast('Chyba při ukládání', 'error');
+
+          if (_isGuest) {
+            _persistGuestDataFromApp();
+            if (wasNotDone) guestActionWarning('Úkol');
+            return;
           }
+
+          const { error } = await window.supabaseClient.from('tasks').update({ done: task.done }).eq('id', id);
+          if (error) { task.done = !task.done; renderDashboard(); return; }
+          if (wasNotDone && typeof xpTaskCompleted === 'function') xpTaskCompleted(task);
         };
         el.addEventListener('click', toggle);
         el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
@@ -324,7 +321,7 @@ function renderDashboard() {
     }
   }
 
-  // ── Widget: Návyky ───────────────────────────────────
+  // Habits widget
   const dashHabitsEl = document.getElementById('dashHabitsList');
   if (dashHabitsEl) {
     if (D.habits.length === 0) {
@@ -333,69 +330,64 @@ function renderDashboard() {
       dashHabitsEl.innerHTML = D.habits.slice(0, 5).map(h => {
         const done = !!D.habitLogs[`${h.id}_${today()}`];
         return `
-          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;
-                      border-bottom:1px solid var(--border-subtle);font-size:12.5px"
-               class="${done ? '' : 'habit-pending'}">
-            <span style="font-size:15px;line-height:1">${h.icon || '◎'}</span>
-            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-              ${escHtml(h.name)}
-            </span>
-            <span style="font-size:11px;color:var(--orange);font-weight:700">
-              🔥 ${h.streak || 0}
-            </span>
-            <span style="font-size:13px;color:${done ? 'var(--green)' : 'var(--text-muted)'}">
-              ${done ? '✓' : '○'}
-            </span>
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--border-subtle);font-size:12.5px">
+            <span style="font-size:15px">${h.icon || '◎'}</span>
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(h.name)}</span>
+            <span style="font-size:11px;color:var(--orange);font-weight:700">🔥 ${h.streak || 0}</span>
+            <span style="color:${done ? 'var(--green)' : 'var(--text-muted)'}">${done ? '✓' : '○'}</span>
           </div>`;
       }).join('');
     }
   }
 
-  // ── Widget: Poslední poznámky ────────────────────────
+  // Notes widget
   const dashNotesEl = document.getElementById('dashNotesList');
   if (dashNotesEl) {
-    const recent = [...D.notes]
-      .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
-      .slice(0, 3);
-
+    const recent = [...D.notes].sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).slice(0, 3);
     if (recent.length === 0) {
       dashNotesEl.innerHTML = '<div class="empty-state-small">Žádné poznámky</div>';
     } else {
-      dashNotesEl.innerHTML = recent.map(n => `
-        <div class="dash-note-item" data-goto="notes" style="cursor:pointer">
-          <div class="dash-note-title">${escHtml(n.title || 'Bez názvu')}</div>
-          <div class="dash-note-preview">
-            ${escHtml(stripMarkdown(n.content || '').slice(0, 90))}
-          </div>
-        </div>`).join('');
+      dashNotesEl.innerHTML = recent.map(n => {
+        const plain = typeof _htmlToPlainText === 'function'
+          ? _htmlToPlainText(n.content || '').slice(0, 90)
+          : (n.content || '').replace(/<[^>]+>/g, '').slice(0, 90);
+        return `
+          <div class="dash-note-item" data-goto="notes">
+            <div class="dash-note-title">${escHtml(n.title || 'Bez názvu')}</div>
+            <div class="dash-note-preview">${escHtml(plain)}</div>
+          </div>`;
+      }).join('');
     }
   }
 
-  // ── Widget: Cíle ─────────────────────────────────────
+  // Goals widget
   const dashGoalsEl = document.getElementById('dashGoalsList');
   if (dashGoalsEl) {
     if (D.goals.length === 0) {
       dashGoalsEl.innerHTML = '<div class="empty-state-small">Žádné cíle</div>';
     } else {
       dashGoalsEl.innerHTML = D.goals.slice(0, 4).map(g => {
-        const pct = g.target_value > 0
-          ? Math.min(100, Math.round((g.current_value / g.target_value) * 100))
-          : 0;
+        const pct = g.target_value > 0 ? Math.min(100, Math.round((g.current_value / g.target_value) * 100)) : 0;
         return `
           <div class="dash-goal-item">
             <div class="dash-goal-name">${escHtml(g.name)}</div>
-            <div class="mini-progress">
-              <div class="mini-fill" style="width:${pct}%"></div>
-            </div>
+            <div class="mini-progress"><div class="mini-fill" style="width:${pct}%"></div></div>
           </div>`;
       }).join('');
     }
   }
 }
 
-/* ═══════════════════════════════════════════════════════
-   GLOBÁLNÍ VYHLEDÁVÁNÍ
-═══════════════════════════════════════════════════════ */
+function _persistGuestDataFromApp() {
+  try {
+    localStorage.setItem('planify_guest_notes',  JSON.stringify(window.APP_DATA.notes));
+    localStorage.setItem('planify_guest_tasks',  JSON.stringify(window.APP_DATA.tasks));
+    localStorage.setItem('planify_guest_habits', JSON.stringify(window.APP_DATA.habits));
+    localStorage.setItem('planify_guest_goals',  JSON.stringify(window.APP_DATA.goals));
+  } catch {}
+}
+
+/* ══ VYHLEDÁVÁNÍ ══ */
 let _searchTimeout = null;
 
 document.getElementById('globalSearch')?.addEventListener('input', e => {
@@ -406,91 +398,47 @@ document.getElementById('globalSearch')?.addEventListener('input', e => {
 });
 
 document.getElementById('globalSearch')?.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    closeSearch();
-    e.target.value = '';
-  }
+  if (e.key === 'Escape') { closeSearch(); e.target.value = ''; }
 });
 
 document.getElementById('closeSearch')?.addEventListener('click', closeSearch);
-
 document.getElementById('searchOverlay')?.addEventListener('click', e => {
   if (e.target === document.getElementById('searchOverlay')) closeSearch();
 });
 
-/**
- * Provede vyhledávání ve všech datech
- * @param {string} q  Dotaz (lowercase)
- */
 function performSearch(q) {
-  const D       = window.APP_DATA;
+  const D = window.APP_DATA;
   const results = [];
 
-  // Prohledat každou sekci
-  D.tasks.forEach(t => {
-    if (t.name.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q)) {
-      results.push({ type: 'Úkol', text: t.name, section: 'tasks' });
-    }
-  });
-
+  D.tasks.forEach(t => { if (t.name.toLowerCase().includes(q) || (t.description||'').toLowerCase().includes(q)) results.push({type:'Úkol',text:t.name,section:'tasks'}); });
   D.notes.forEach(n => {
-    if ((n.title || '').toLowerCase().includes(q) || (n.content || '').toLowerCase().includes(q)) {
-      results.push({ type: 'Poznámka', text: n.title || 'Bez názvu', section: 'notes' });
-    }
+    const plain = typeof _htmlToPlainText === 'function' ? _htmlToPlainText(n.content||'') : (n.content||'').replace(/<[^>]+>/g,'');
+    if ((n.title||'').toLowerCase().includes(q) || plain.toLowerCase().includes(q)) results.push({type:'Poznámka',text:n.title||'Bez názvu',section:'notes'});
   });
+  D.habits.forEach(h => { if (h.name.toLowerCase().includes(q)) results.push({type:'Návyk',text:h.name,section:'habits'}); });
+  D.goals.forEach(g => { if (g.name.toLowerCase().includes(q)) results.push({type:'Cíl',text:g.name,section:'goals'}); });
+  D.transactions.forEach(t => { if (t.description.toLowerCase().includes(q)) results.push({type:'Transakce',text:t.description,section:'finance'}); });
+  D.events.forEach(ev => { if (ev.name.toLowerCase().includes(q)) results.push({type:'Událost',text:ev.name,section:'calendar'}); });
 
-  D.habits.forEach(h => {
-    if (h.name.toLowerCase().includes(q)) {
-      results.push({ type: 'Návyk', text: h.name, section: 'habits' });
-    }
-  });
-
-  D.goals.forEach(g => {
-    if (g.name.toLowerCase().includes(q) || (g.description || '').toLowerCase().includes(q)) {
-      results.push({ type: 'Cíl', text: g.name, section: 'goals' });
-    }
-  });
-
-  D.transactions.forEach(t => {
-    if (t.description.toLowerCase().includes(q)) {
-      results.push({ type: 'Transakce', text: t.description, section: 'finance' });
-    }
-  });
-
-  D.events.forEach(ev => {
-    if (ev.name.toLowerCase().includes(q)) {
-      results.push({ type: 'Událost', text: ev.name, section: 'calendar' });
-    }
-  });
-
-  // Zobrazit výsledky
-  const titleEl    = document.getElementById('searchResultsTitle');
-  const resultsEl  = document.getElementById('searchResults');
-
-  if (titleEl) titleEl.textContent = `Výsledky pro „${q}" (${results.length})`;
+  const titleEl   = document.getElementById('searchResultsTitle');
+  const resultsEl = document.getElementById('searchResults');
+  if (titleEl) titleEl.textContent = results.length ? `Nalezeno: ${results.length} výsledků` : 'Žádné výsledky';
 
   if (results.length === 0) {
-    resultsEl.innerHTML = `
-      <div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13.5px">
-        Nic nenalezeno
-      </div>`;
+    resultsEl.innerHTML = `<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13.5px">Nic nebylo nalezeno pro „${escHtml(q)}"</div>`;
   } else {
-    resultsEl.innerHTML = results.slice(0, 16).map(r => `
-      <div class="search-result-item" data-goto="${r.section}" role="listitem">
+    resultsEl.innerHTML = results.slice(0,16).map(r => `
+      <div class="search-result-item" data-goto="${r.section}">
         <span class="search-result-type">${r.type}</span>
         <span class="search-result-text">${escHtml(r.text)}</span>
       </div>`).join('');
-
     resultsEl.querySelectorAll('.search-result-item').forEach(el => {
       el.addEventListener('click', () => {
-        navigate(el.dataset.goto);
-        closeSearch();
-        const inp = document.getElementById('globalSearch');
-        if (inp) inp.value = '';
+        navigate(el.dataset.goto); closeSearch();
+        document.getElementById('globalSearch').value = '';
       });
     });
   }
-
   document.getElementById('searchOverlay').classList.add('open');
 }
 
@@ -498,28 +446,47 @@ function closeSearch() {
   document.getElementById('searchOverlay')?.classList.remove('open');
 }
 
-/* ═══════════════════════════════════════════════════════
-   NOTIFICATION BUTTON
-═══════════════════════════════════════════════════════ */
+/* ══ PŘELOŽENÍ CHYB ══ */
+function friendlyDbError(err) {
+  if (!err) return 'Neznámá chyba.';
+  const msg = (err.message || err.code || '').toLowerCase();
+  if (msg.includes('jwt'))                     return 'Platnost přihlášení vypršela. Přihlaste se znovu.';
+  if (msg.includes('network')||msg.includes('fetch')) return 'Problém s připojením. Zkontrolujte internet.';
+  if (msg.includes('unique'))                  return 'Tento záznam již existuje.';
+  if (msg.includes('foreign key'))             return 'Nelze smazat — na záznamu závisí jiná data.';
+  if (msg.includes('row-level security')||msg.includes('rls')) return 'Nemáte oprávnění k této operaci.';
+  if (msg.includes('too many requests'))       return 'Příliš mnoho požadavků. Počkejte chvíli.';
+  if (msg.includes('not null'))                return 'Chybí povinné pole.';
+  return 'Nastala chyba při ukládání. Zkuste to znovu.';
+}
+
+/* ══ NOTIF TLAČÍTKO ══ */
 document.getElementById('notifBtn')?.addEventListener('click', () => {
-  // Žádat o povolení notifikací pokud ještě není povoleno
-  if (typeof requestNotificationPermission === 'function') {
-    requestNotificationPermission();
-  }
-  showToast('Notifikace jsou aktivní', 'info');
+  if (typeof requestNotificationPermission === 'function') requestNotificationPermission();
 });
 
-/* ═══════════════════════════════════════════════════════
-   INICIALIZACE APLIKACE
-═══════════════════════════════════════════════════════ */
+/* ══ INICIALIZACE ══ */
 async function initApp() {
-  // 1. Ověřit session
+  // Nastavit téma co nejdříve
+  const savedTheme = localStorage.getItem('planify_theme') || 'dark';
+  applyTheme(savedTheme);
+
+  // ── Zjistit zda je guest mode ──────────────────────
+  _isGuest = (typeof isGuestMode === 'function') && isGuestMode();
+
+  if (_isGuest) {
+    // Spustit jako host — bez Supabase
+    await _initAsGuest();
+    return;
+  }
+
+  // ── Ověřit session ────────────────────────────────
   let session;
   try {
     const { data } = await window.supabaseClient.auth.getSession();
     session = data.session;
   } catch (err) {
-    const { data } = await window.supabaseClient.auth.getSession();
+    console.error('[Planify] getSession:', err);
     window.location.replace('index.html');
     return;
   }
@@ -531,64 +498,104 @@ async function initApp() {
 
   currentUser = session.user;
 
-  // 2. Aplikovat uložené téma (PŘED zobrazením obsahu)
-  const savedTheme = localStorage.getItem('planify_theme') || 'dark';
-  applyTheme(savedTheme);
-
-  // 3. Zobrazit info o uživateli
+  // Uživatel
   const emailEl  = document.getElementById('userEmail');
   const avatarEl = document.getElementById('userAvatar');
   if (emailEl)  emailEl.textContent  = currentUser.email || '—';
   if (avatarEl) avatarEl.textContent = (currentUser.email || 'U')[0].toUpperCase();
 
-  // 4. Spustit datetime ticker
+  // DateTime
   updateDatetime();
   setInterval(updateDatetime, 60_000);
 
-  // 5. Načíst data z DB
+  // XP bar
+  ensureXpBar();
+  updateXpBar();
+
+  // Načíst data
   try {
     await loadAllData();
   } catch (err) {
-    console.error('[Planify] Chyba loadAllData:', err);
-    showToast('Nepodařilo se načíst data. Zkuste obnovit stránku.', 'error', 5000);
+    console.error('[Planify] loadAllData:', err);
+    showToast(friendlyDbError(err), 'error', 6000);
   }
 
-  // 6. Vykreslit všechny sekce
+  // Render
   renderAll();
 
-  // 7. Inicializovat notifikace
-  if (typeof initNotifications === 'function') {
-    initNotifications();
-  }
+  // Notifikace
+  if (typeof initNotifications === 'function') initNotifications();
 
-  // 8. Skrýt loading screen
+  // Skrýt loading
   const loadingEl = document.getElementById('appLoading');
   if (loadingEl) {
     loadingEl.classList.add('fade-out');
-    setTimeout(() => {
-      loadingEl.style.display = 'none';
-    }, 420);
+    setTimeout(() => { loadingEl.style.display = 'none'; }, 420);
   }
 
-  // 9. Zobrazit dashboard
   navigate('dashboard');
 
-  // 10. Tour průvodce při prvním spuštění
+  // Tour
   const tourDone = localStorage.getItem('planify_tour_done');
-  if (!tourDone && typeof startTour === 'function') {
-    setTimeout(startTour, 900);
-  }
+  if (!tourDone && typeof startTour === 'function') setTimeout(startTour, 900);
 
-  // 11. Reagovat na odhlášení
+  // Denní XP bonus
+  if (typeof checkDailyLoginBonus === 'function') setTimeout(checkDailyLoginBonus, 1500);
+
+  // Auth changes
   window.supabaseClient.auth.onAuthStateChange((event, newSession) => {
-    if (event === 'SIGNED_OUT' || !newSession) {
-      window.location.replace('index.html');
-    }
-    if (event === 'TOKEN_REFRESHED') {
-      currentUser = newSession.user;
-    }
+    if (event === 'SIGNED_OUT' || !newSession) window.location.replace('index.html');
+    if (event === 'TOKEN_REFRESHED') currentUser = newSession.user;
   });
 }
 
-// Spustit po načtení DOM
+/* ─────────────────────────────────────────────────────
+   INICIALIZACE JAKO HOST
+───────────────────────────────────────────────────── */
+async function _initAsGuest() {
+  // Nastavit jméno
+  const emailEl  = document.getElementById('userEmail');
+  const avatarEl = document.getElementById('userAvatar');
+  if (emailEl)  emailEl.textContent  = 'Režim hosta';
+  if (avatarEl) avatarEl.textContent = '👤';
+
+  // DateTime
+  updateDatetime();
+  setInterval(updateDatetime, 60_000);
+
+  // Načíst data z localStorage
+  await loadAllData();
+
+  // Render
+  renderAll();
+
+  // Skrýt loading
+  const loadingEl = document.getElementById('appLoading');
+  if (loadingEl) {
+    loadingEl.classList.add('fade-out');
+    setTimeout(() => { loadingEl.style.display = 'none'; }, 420);
+  }
+
+  navigate('dashboard');
+
+  // Zobrazit persistent banner
+  showGuestBanner();
+
+  // Ukázat toast po načtení
+  setTimeout(() => {
+    showToast('👤 Režim hosta: data se neukládají na server — jen v tomto prohlížeči.', 'warning', 6000);
+  }, 1200);
+}
+
+/* ─────────────────────────────────────────────────────
+   COOKIE BANNER pro app.html (pokud nebyl potvrzen)
+───────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  // Cookie.js se načítá zvlášť — initCookieBanner se zavolá z něj
+  // Zde jen spustit reminder scheduler
+  if (typeof startReminderScheduler === 'function') {
+    startReminderScheduler();
+  }
+});
+
 document.addEventListener('DOMContentLoaded', initApp);
