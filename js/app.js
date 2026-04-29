@@ -18,6 +18,65 @@ const SECTION_NAMES = {
   notes:     'Poznámky',
 };
 
+/* ─────────────────────────────────────────────────────
+   XP FALLBACKY — bezpečné verze pokud supabase.js
+   neobsahuje gamifikaci (starší verze souboru)
+───────────────────────────────────────────────────── */
+if (typeof updateXpBar !== 'function') {
+  window.updateXpBar = function() {
+    const xp   = parseInt(localStorage.getItem('planify_xp_simple') || '0');
+    const levelEl  = document.getElementById('xpLevelBadge');
+    const pointsEl = document.getElementById('xpPoints');
+    const fillEl   = document.getElementById('xpBarFill');
+    // Jednoduchý výpočet levelu bez plného systému
+    const level = Math.min(10, Math.floor(xp / 200) + 1);
+    if (levelEl)  levelEl.textContent  = '⭐ Úr. ' + level;
+    if (pointsEl) pointsEl.textContent = xp + ' XP';
+    if (fillEl)   fillEl.style.width   = Math.min(100, (xp % 200) / 2) + '%';
+  };
+}
+
+if (typeof addXP !== 'function') {
+  window.addXP = function(amount) {
+    const key = 'planify_xp_simple';
+    const cur = parseInt(localStorage.getItem(key) || '0');
+    localStorage.setItem(key, String(cur + amount));
+    if (typeof updateXpBar === 'function') updateXpBar();
+  };
+}
+
+if (typeof xpTaskCompleted !== 'function') {
+  window.xpTaskCompleted = function() { if (typeof addXP === 'function') addXP(20); };
+}
+if (typeof xpHabitChecked !== 'function') {
+  window.xpHabitChecked = function() { if (typeof addXP === 'function') addXP(15); };
+}
+if (typeof xpPomodoroCompleted !== 'function') {
+  window.xpPomodoroCompleted = function() { if (typeof addXP === 'function') addXP(25); };
+}
+if (typeof xpNoteCreated !== 'function') {
+  window.xpNoteCreated = function() { if (typeof addXP === 'function') addXP(10); };
+}
+if (typeof xpGoalCompleted !== 'function') {
+  window.xpGoalCompleted = function() { if (typeof addXP === 'function') addXP(200); };
+}
+if (typeof xpTransactionAdded !== 'function') {
+  window.xpTransactionAdded = function() { if (typeof addXP === 'function') addXP(5); };
+}
+if (typeof checkDailyLoginBonus !== 'function') {
+  window.checkDailyLoginBonus = function() {
+    const key = 'planify_daily_login';
+    const t   = new Date().toISOString().slice(0,10);
+    if (localStorage.getItem(key) !== t) {
+      localStorage.setItem(key, t);
+      if (typeof addXP === 'function') addXP(10);
+    }
+  };
+}
+if (typeof checkAchievements !== 'function') {
+  window.checkAchievements = function() {};
+}
+
 /* ══ NAVIGACE ══ */
 function navigate(section) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -508,9 +567,9 @@ async function initApp() {
   updateDatetime();
   setInterval(updateDatetime, 60_000);
 
-  // XP bar
-  ensureXpBar();
-  updateXpBar();
+  // XP bar (safe — funguje i bez nového supabase.js)
+  if (typeof ensureXpBar === 'function') ensureXpBar();
+  if (typeof updateXpBar === 'function') updateXpBar();
 
   // Načíst data
   try {
