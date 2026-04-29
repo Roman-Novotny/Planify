@@ -389,11 +389,17 @@ function renderShop() {
   // Filtrovat dle záložky
   const items = SHOP_ITEMS.filter(i => i.category === _shopTab);
 
+  // Spočítat vlastněné předměty per kategorie
+  const ownedByTab = {};
+  ['avatar','title','theme','powerup'].forEach(cat => {
+    ownedByTab[cat] = SHOP_ITEMS.filter(i => i.category === cat && owned.has(i.id)).length;
+  });
+
   const tabLabels = {
-    avatar:  '🧑 Avatary',
-    title:   '🏷️ Tituly',
-    theme:   '🎨 Motivy',
-    powerup: '⚡ Power-upy',
+    avatar:  `🧑 Avatary${ownedByTab.avatar  ? ' <span style="background:var(--green-dim);color:var(--green);border-radius:99px;padding:1px 6px;font-size:10px">'+ownedByTab.avatar+'</span>' : ''}`,
+    title:   `🏷️ Tituly${ownedByTab.title   ? ' <span style="background:var(--green-dim);color:var(--green);border-radius:99px;padding:1px 6px;font-size:10px">'+ownedByTab.title+'</span>' : ''}`,
+    theme:   `🎨 Motivy${ownedByTab.theme   ? ' <span style="background:var(--green-dim);color:var(--green);border-radius:99px;padding:1px 6px;font-size:10px">'+ownedByTab.theme+'</span>' : ''}`,
+    powerup: `⚡ Power-upy${ownedByTab.powerup ? ' <span style="background:var(--green-dim);color:var(--green);border-radius:99px;padding:1px 6px;font-size:10px">'+ownedByTab.powerup+'</span>' : ''}`,
   };
 
   section.innerHTML = `
@@ -402,6 +408,13 @@ function renderShop() {
         <h2>XP Obchod</h2>
         <div class="section-sub">Utrácejte XP body za odměny a vylepšení</div>
       </div>
+    </div>
+
+    <!-- Jak to funguje -->
+    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 18px;margin-bottom:18px;font-size:13px;color:var(--text-secondary);display:flex;gap:16px;flex-wrap:wrap">
+      <span>💡 <strong style="color:var(--text-primary)">Jak to funguje:</strong> Každou akcí v aplikaci získáváte XP body.</span>
+      <span>🛒 <strong style="color:var(--text-primary)">Nákup:</strong> Klikněte na <em>Koupit</em> pro okamžité použití.</span>
+      <span>🔄 <strong style="color:var(--text-primary)">Přepínání:</strong> Zakoupené předměty aktivujte tlačítkem <em>Aktivovat</em>.</span>
     </div>
 
     <!-- XP přehled -->
@@ -416,14 +429,15 @@ function renderShop() {
       <div class="shop-tabs">
         ${Object.entries(tabLabels).map(([key, label]) => `
           <button class="shop-tab ${_shopTab === key ? 'active' : ''}"
-                  data-shop-tab="${key}">
-            ${label}
+                  data-shop-tab="${key}"
+                  style="display:flex;align-items:center;gap:4px">
+            <span>${label}</span>
           </button>`).join('')}
       </div>
     </div>
 
     <!-- Předměty -->
-    <div class="shop-grid">
+    <div class="shop-grid" style="max-width:100%">
       ${items.map(item => {
         const isOwned   = owned.has(item.id);
         const canAfford = currentXP >= item.price;
@@ -450,17 +464,20 @@ function renderShop() {
                   ${isOwned || !canAfford ? (isOwned ? '' : 'disabled') : ''}
                   data-buy-item="${item.id}">
             ${isOwned
-              ? (isActive ? '✓ Aktivní' : '✓ Vlastním')
+              ? (isActive ? '✓ Aktivní' : '🎒 Vlastním')
               : canAfford
-                ? 'Koupit'
+                ? '🛒 Koupit'
                 : `Chybí ${item.price - currentXP} XP`}
           </button>
 
           ${isOwned && !isActive && item.category !== 'powerup' ? `
-            <button class="btn-buy can-buy" style="margin-top:-4px;background:var(--accent-dim);color:var(--accent-light);box-shadow:none"
+            <button class="btn-buy can-buy" style="margin-top:-4px;background:rgba(99,102,241,0.12);color:var(--accent-light);box-shadow:none;border:1px solid rgba(99,102,241,0.3)"
                     data-activate-item="${item.id}">
-              Aktivovat
+              ▶ Aktivovat
             </button>` : ''}
+          ${isActive && item.category !== 'powerup' ? `
+            <div style="font-size:10.5px;color:var(--green);text-align:center;padding-top:2px">✓ Právě aktivní</div>
+          ` : ''}
         </div>`;
       }).join('')}
     </div>
@@ -468,6 +485,9 @@ function renderShop() {
 
   // Events
   section.querySelectorAll('[data-shop-tab]').forEach(btn => {
+    // Renderovat badge HTML
+    const span = btn.querySelector('span');
+    if (span) span.innerHTML = tabLabels[btn.dataset.shopTab] || btn.dataset.shopTab;
     btn.addEventListener('click', () => {
       _shopTab = btn.dataset.shopTab;
       renderShop();
