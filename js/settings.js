@@ -9,14 +9,14 @@
 const SETTINGS_KEY = 'planify_settings';
 
 const DEFAULT_SETTINGS = {
-  theme:             'dark',     // 'dark' | 'light'
-  accentColor:       '#6366F1',  // hex barva
-  fontSize:          'normal',   // 'small' | 'normal' | 'large'
-  notifEnabled:      true,
-  notifTasksToday:   true,
+  theme:              'dark',
+  accentColor:        '#6366F1',
+  fontSize:           'normal',
+  notifEnabled:       true,
+  notifTasksToday:    true,
   notifHabitsEvening: true,
-  animationsEnabled: true,
-  compactMode:       false,
+  animationsEnabled:  true,
+  compactMode:        false,
 };
 
 function loadSettings() {
@@ -27,7 +27,46 @@ function loadSettings() {
 }
 
 function saveSettings(settings) {
+  // Vždy uložit lokálně (okamžitě)
   try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch {}
+
+  // Uložit do Supabase profilu pokud je uživatel přihlášen
+  _saveSettingsToSupabase(settings);
+}
+
+async function _saveSettingsToSupabase(settings) {
+  // Zkontrolovat zda je k dispozici Supabase a přihlášený uživatel
+  const client = window.supabaseClient;
+  const user   = typeof currentUser !== 'undefined' ? currentUser : null;
+  if (!client || !user) return;
+
+  try {
+    // Uložit do user_metadata (nevyžaduje vlastní tabulku)
+    await client.auth.updateUser({
+      data: { planify_settings: settings }
+    });
+  } catch (err) {
+    // Tiché selhání — localStorage verze je vždy záloha
+    console.warn('[Planify] Nastavení se nepodařilo uložit na server:', err.message);
+  }
+}
+
+async function loadSettingsFromSupabase() {
+  // Načíst nastavení z Supabase user_metadata
+  const client = window.supabaseClient;
+  if (!client) return null;
+
+  try {
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return null;
+    const remote = user.user_metadata?.planify_settings;
+    if (!remote) return null;
+    // Merge s defaults (ochrana před chybějícími klíči)
+    const merged = { ...DEFAULT_SETTINGS, ...remote };
+    // Synchronizovat do localStorage
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
+    return merged;
+  } catch { return null; }
 }
 
 /* ─────────────────────────────────────────────────────
@@ -63,8 +102,11 @@ function applySettings(settings) {
 function _syncThemeButton(theme) {
   const labelEl = document.getElementById('themeLabel');
   const iconEl  = document.getElementById('themeIcon');
+  // Label říká CO SE STANE po kliknutí (přepnout na opačný)
   if (labelEl) labelEl.textContent = theme === 'dark' ? 'Světlý režim' : 'Tmavý režim';
   if (iconEl)  iconEl.textContent  = theme === 'dark' ? '☽' : '☀';
+  // Uložit do localStorage pro případ reload
+  localStorage.setItem('planify_theme', theme);
 }
 
 function renderSettings() {
@@ -491,14 +533,28 @@ function renderSettings() {
 /* ─────────────────────────────────────────────────────
    INICIALIZACE
 ───────────────────────────────────────────────────── */
-function initSettings() {
-  const settings = loadSettings();
-  applySettings(settings);
-  // Synchronizovat tlačítko tématu
-  _syncThemeButton(settings.theme || 'dark');
-  // Aplikovat uloženou akcent barvu
-  if (settings.accentColor && settings.accentColor !== '#6366F1') {
-    document.documentElement.style.setProperty('--accent', settings.accentColor);
+async function initSettings() {
+  // Nejdřív aplikovat lokální nastavení (okamžitě, bez čekání)
+  const localSettings = loadSettings();
+  applySettings(localSettings);
+  _syncThemeButton(localSettings.theme || 'dark');
+  if (localSettings.accentColor && localSettings.accentColor !== '#6366F1') {
+    document.documentElement.style.setProperty('--accent', localSettings.accentColor);
+  }
+
+  // Pak načíst ze Supabase (může přepsat lokální)
+  const remoteSettings = await loadSettingsFromSupabase();
+  if (remoteSettings) {
+    applySettings(remoteSettings);
+    _syncThemeButton(remoteSettings.theme || 'dark');
+    if (remoteSettings.accentColor && remoteSettings.accentColor !== '#6366F1') {
+      document.documentElement.style.setProperty('--accent', remoteSettings.accentColor);
+    }
+    // Překreslit nastavení pokud je sekce otevřená
+    const settingsSection = document.getElementById('section-settings');
+    if (settingsSection?.classList.contains('active')) {
+      renderSettings();
+    }
   }
 }
 
