@@ -1,436 +1,364 @@
 /* ═══════════════════════════════════════════════════════
-   Planify — js/tour.js
-   Interaktivní průvodce — komiksové bubliny, kroky,
-   zvýraznění prvků, animace přechodů
+   Planify — js/tour.js  v3 final
+   Interaktivní průvodce — mobile first, XP krok,
+   správné stíny, klávesová navigace
 ═══════════════════════════════════════════════════════ */
 
-/* ─────────────────────────────────────────────────────
-   KROKY PRŮVODCE
-───────────────────────────────────────────────────── */
 const TOUR_STEPS = [
   {
-    targetId:  'sidebarLogoLink',
-    section:   null,
-    icon:      '👋',
-    title:     'Vítejte v Planify!',
-    text:      'Toto je váš osobní dashboard pro produktivitu. Pojďme si ukázat, co všechno umí. Průvodce vás provede hlavními funkcemi — trvá jen pár minut.',
-    position:  'right',
+    targetId: 'sidebarLogoLink',
+    section:  null,
+    icon:     '👋',
+    title:    'Vítejte v Planify!',
+    text:     'Toto je váš osobní dashboard pro produktivitu. Průvodce vás provede hlavními funkcemi — trvá jen pár minut. Pomocí šipek nebo tlačítek se přesunujte mezi kroky.',
+    position: 'right',
   },
   {
-    targetId:  'tourNav',
-    section:   'dashboard',
-    icon:      '⊞',
-    title:     'Navigace',
-    text:      'V levém panelu najdete přístup ke všem sekcím: Úkoly, Kalendář, Návyky, Pomodoro, Finance, Cíle a Poznámky. Kliknutím přejdete do dané sekce.',
-    position:  'right',
+    targetId: 'tourNav',
+    section:  'dashboard',
+    icon:     '⊞',
+    title:    'Navigace',
+    text:     'V levém panelu najdete přístup ke všem sekcím: Úkoly, Kalendář, Návyky, Pomodoro, Finance, Cíle a Poznámky. Na mobilu otevřete menu ikonou ☰ nahoře.',
+    position: 'right',
   },
   {
-    targetId:  'tourStats',
-    section:   'dashboard',
-    icon:      '📊',
-    title:     'Dashboard — přehled',
-    text:      'Na hlavním dashboardu vidíte okamžitý přehled: kolik máte úkolů dnes, kolik návyků jste splnili, váš finanční zůstatek a počet aktivních cílů.',
-    position:  'bottom',
+    targetId: 'tourStats',
+    section:  'dashboard',
+    icon:     '📊',
+    title:    'Dashboard — přehled',
+    text:     'Okamžitý přehled dne: dnešní úkoly, splněné návyky, zůstatek a cíle. Kliknutím na kartu přejdete přímo do dané sekce.',
+    position: 'bottom',
   },
   {
-    targetId:  'section-tasks',
-    section:   'tasks',
-    icon:      '✓',
-    title:     'Správa úkolů',
-    text:      'Přidávejte úkoly s termíny, prioritami a kategoriemi. Filtrujte je podle stavu nebo kategorie, řaďte dle termínu nebo priority. Splněné úkoly označte kliknutím na kroužek.',
-    position:  'top',
+    targetId: 'section-tasks',
+    section:  'tasks',
+    icon:     '✓',
+    title:    'Správa úkolů',
+    text:     'Přidávejte úkoly s termíny, prioritami a kategoriemi. Splněné označte kliknutím na kroužek. Za každý splněný úkol získáte XP body!',
+    position: 'top',
   },
   {
-    targetId:  'section-finance',
-    section:   'finance',
-    icon:      '◈',
-    title:     'Finance',
-    text:      'Sledujte příjmy a výdaje, nastavte si měsíční rozpočty a dostávejte upozornění při překročení. Grafy zobrazují přehled za posledních 6 měsíců a rozložení výdajů dle kategorií.',
-    position:  'top',
+    targetId: 'section-habits',
+    section:  'habits',
+    icon:     '◎',
+    title:    'Návyky a streaky',
+    text:     'Sledujte denní návyky a budujte streak. Nastavte si připomínku v konkrétní čas — upozorní vás, i když aplikace neběží.',
+    position: 'top',
   },
   {
-    targetId:  'section-habits',
-    section:   'habits',
-    icon:      '◎',
-    title:     'Návyky a streaky',
-    text:      'Sledujte denní návyky a budujte sérii (streak). Každý den označte splněné návyky — vizuální tečky ukazují posledních 7 dní. Při splnění 7, 14 nebo 21 dní dostanete odměnu!',
-    position:  'top',
+    targetId: 'section-finance',
+    section:  'finance',
+    icon:     '◈',
+    title:    'Finance',
+    text:     'Sledujte příjmy a výdaje, nastavte měsíční rozpočty. Při překročení 80 % limitu dostanete varování. Grafy ukazují trend za 6 měsíců.',
+    position: 'top',
   },
   {
-    targetId:  'section-pomodoro',
-    section:   'pomodoro',
-    icon:      '◷',
-    title:     'Pomodoro časovač',
-    text:      'Pracujte ve 25minutových blocích s krátkými přestávkami. Po každém 4. sezení automaticky nastane dlouhá přestávka. Přiřaďte si úkol ke každému sezení pro lepší přehled.',
-    position:  'top',
+    targetId: 'xpBarContainer',
+    section:  'dashboard',
+    icon:     '⭐',
+    title:    'XP a achievementy',
+    text:     'Za každou aktivitu získáváte XP body — od Nováčka až po Grand Mastera! Sbírejte achievementy za splněné milníky a vraťte se každý den pro denní bonus.',
+    position: 'right',
   },
   {
-    targetId:  'tourStartBtn',
-    section:   null,
-    icon:      '🎉',
-    title:     'Jste připraveni!',
-    text:      'To je vše! Průvodce si můžete kdykoli spustit znovu kliknutím na tlačítko „Nápověda" v levém panelu. Hodně úspěchů s Planify!',
-    position:  'right',
+    targetId: 'tourStartBtn',
+    section:  null,
+    icon:     '🎉',
+    title:    'Vše připraveno!',
+    text:     'Průvodce lze kdykoli spustit znovu přes „? Nápověda" v menu. Hodně XP a úspěchů s Planify!',
+    position: 'right',
   },
 ];
 
-/* ─────────────────────────────────────────────────────
-   STAV PRŮVODCE
-───────────────────────────────────────────────────── */
-let _tourActive  = false;
-let _tourStep    = 0;
+let _tourActive = false;
+let _tourStep   = 0;
 
 /* ═══════════════════════════════════════════════════════
-   SPUŠTĚNÍ PRŮVODCE
+   START
 ═══════════════════════════════════════════════════════ */
 function startTour() {
   _tourActive = true;
   _tourStep   = 0;
-
-  // Zobrazit stínové pruhy
   document.querySelectorAll('.tour-shadow').forEach(el => el.classList.add('visible'));
   document.getElementById('tourHighlightRing')?.classList.add('visible');
-
   _showStep(0);
 }
 
 /* ═══════════════════════════════════════════════════════
-   ZOBRAZENÍ KROKU
+   ZOBRAZIT KROK
 ═══════════════════════════════════════════════════════ */
 function _showStep(index, direction = 'next') {
   if (index < 0 || index >= TOUR_STEPS.length) return;
-
   _tourStep = index;
   const step = TOUR_STEPS[index];
 
-  // Navigovat na správnou sekci
-  if (step.section) navigate(step.section);
+  // Na mobilu otevřít sidebar pro kroky se sidebar targety
+  const sidebarTargets = ['sidebarLogoLink','tourNav','xpBarContainer','tourStartBtn'];
+  if (window.innerWidth <= 960 && sidebarTargets.includes(step.targetId)) {
+    if (typeof openSidebar === 'function') openSidebar();
+  }
 
-  // Krátká prodleva pro render sekce
+  if (step.section && typeof navigate === 'function') navigate(step.section);
+
+  const delay = step.section ? 220 : 40;
   setTimeout(() => {
-    _positionBubble(step, direction);
-    _updateBubbleContent(step, index);
-  }, step.section ? 180 : 30);
+    _updateBubbleContent(step, index, direction);
+    _positionBubble(step);
+  }, delay);
 }
 
 /* ═══════════════════════════════════════════════════════
-   AKTUALIZACE OBSAHU BUBLINY
+   OBSAH BUBLINY
 ═══════════════════════════════════════════════════════ */
-function _updateBubbleContent(step, index) {
+function _updateBubbleContent(step, index, direction) {
   const bubble = document.getElementById('tourBubble');
   if (!bubble) return;
 
-  // Counter
   const counterEl = document.getElementById('tourStepCounter');
+  const iconEl    = document.getElementById('tourIcon');
+  const titleEl   = document.getElementById('tourTitle');
+  const textEl    = document.getElementById('tourText');
+  const dotsEl    = document.getElementById('tourDots');
+  const prevBtn   = document.getElementById('tourPrev');
+  const nextBtn   = document.getElementById('tourNext');
+
   if (counterEl) counterEl.textContent = `${index + 1} / ${TOUR_STEPS.length}`;
+  if (iconEl)    iconEl.textContent    = step.icon  || '⊞';
+  if (titleEl)   titleEl.textContent   = step.title || '';
+  if (textEl)    textEl.textContent    = step.text  || '';
 
-  // Ikona
-  const iconEl = document.getElementById('tourIcon');
-  if (iconEl) iconEl.textContent = step.icon || '⊞';
-
-  // Titulek a text
-  const titleEl = document.getElementById('tourTitle');
-  const textEl  = document.getElementById('tourText');
-  if (titleEl) titleEl.textContent = step.title;
-  if (textEl)  textEl.textContent  = step.text;
-
-  // Progress tečky
-  const dotsEl = document.getElementById('tourDots');
   if (dotsEl) {
     dotsEl.innerHTML = TOUR_STEPS.map((_, i) => `
       <div class="tour-dot ${i === index ? 'active' : ''}"
-           data-tour-dot="${i}"
-           title="Krok ${i + 1}"
-           tabindex="0"
-           role="button"
-           aria-label="Přejít na krok ${i + 1}"></div>`
-    ).join('');
-
-    // Klik na tečku = přejít na krok
+           data-tour-dot="${i}" tabindex="0" role="button"
+           aria-label="Krok ${i + 1}"></div>`).join('');
     dotsEl.querySelectorAll('[data-tour-dot]').forEach(dot => {
       dot.addEventListener('click', () => {
-        const targetStep = parseInt(dot.dataset.tourDot);
-        _showStep(targetStep, targetStep > _tourStep ? 'next' : 'prev');
+        const t = parseInt(dot.dataset.tourDot);
+        _showStep(t, t > _tourStep ? 'next' : 'prev');
+      });
+      dot.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const t = parseInt(dot.dataset.tourDot);
+          _showStep(t, t > _tourStep ? 'next' : 'prev');
+        }
       });
     });
   }
 
-  // Tlačítko Zpět
-  const prevBtn = document.getElementById('tourPrev');
-  if (prevBtn) prevBtn.disabled = index === 0;
-
-  // Tlačítko Další / Hotovo
-  const nextBtn = document.getElementById('tourNext');
+  if (prevBtn) prevBtn.disabled = (index === 0);
   if (nextBtn) {
     const isLast = index === TOUR_STEPS.length - 1;
     nextBtn.textContent = isLast ? 'Hotovo ✓' : 'Další ›';
     nextBtn.classList.toggle('is-last', isLast);
   }
 
-  // Zobrazit bublinu
   bubble.classList.remove('hiding');
+  void bubble.offsetWidth; // force reflow pro animaci
   bubble.classList.add('visible');
+  bubble.classList.remove('step-next', 'step-prev');
+  bubble.classList.add(direction === 'next' ? 'step-next' : 'step-prev');
+  setTimeout(() => bubble.classList.remove('step-next', 'step-prev'), 320);
 }
 
 /* ═══════════════════════════════════════════════════════
-   POZICOVÁNÍ BUBLINY A HIGHLIGHT RINGU
+   POZICOVÁNÍ
 ═══════════════════════════════════════════════════════ */
-function _positionBubble(step, direction = 'next') {
-  const bubble    = document.getElementById('tourBubble');
-  const ring      = document.getElementById('tourHighlightRing');
+function _positionBubble(step) {
+  const bubble = document.getElementById('tourBubble');
+  const ring   = document.getElementById('tourHighlightRing');
   if (!bubble) return;
 
-  const target = step.targetId ? document.getElementById(step.targetId) : null;
+  const isMobile = window.innerWidth <= 640;
 
-  if (!target) {
-    // Žádný cíl — zobrazit uprostřed
-    _centerBubble(bubble);
-    _hideRing();
-    _setFullShadow();
+  if (isMobile) {
+    _mobilePosition(bubble);
+    _hideShadowsAndRing();
     return;
   }
 
-  // Získat rozměry a pozici cíle
-  const rect    = target.getBoundingClientRect();
-  const padding = 8; // px mezera kolem zvýrazněného prvku
-
-  // Pozicovat highlight ring
-  if (ring) {
-    ring.style.top    = `${rect.top    - padding}px`;
-    ring.style.left   = `${rect.left   - padding}px`;
-    ring.style.width  = `${rect.width  + padding * 2}px`;
-    ring.style.height = `${rect.height + padding * 2}px`;
-    ring.classList.add('visible');
+  const target = step.targetId ? document.getElementById(step.targetId) : null;
+  if (!target) {
+    _centerBubble(bubble);
+    _hideShadowsAndRing();
+    return;
   }
 
-  // Nastavit stínové pruhy (4 obdélníky kolem prvku)
-  _setShadowsAroundRect(rect, padding);
+  // Scroll cíle do zobrazení
+  target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-  // Scroll prvku do viditelné oblasti
-  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  requestAnimationFrame(() => {
+    const rect = target.getBoundingClientRect();
+    const pad  = 8;
 
-  // Animace přechodu
-  bubble.classList.add(direction === 'next' ? 'step-next' : 'step-prev');
-  setTimeout(() => bubble.classList.remove('step-next', 'step-prev'), 300);
+    // Ring
+    if (ring) {
+      ring.style.top    = `${rect.top    - pad}px`;
+      ring.style.left   = `${rect.left   - pad}px`;
+      ring.style.width  = `${rect.width  + pad * 2}px`;
+      ring.style.height = `${rect.height + pad * 2}px`;
+      ring.classList.add('visible');
+    }
 
-  // Vypočítat pozici bubliny
-  const bubbleW = 310;
-  const bubbleH = 280; // Odhadovaná výška
-  const margin  = 16;  // Mezera od zvýrazněného prvku
-  const vw      = window.innerWidth;
-  const vh      = window.innerHeight;
+    // Stíny
+    _setShadows(rect, pad);
 
-  let top, left;
-  let arrowClass = '';
-  const pos = step.position || 'right';
+    // Pozice bubliny
+    const BW  = 318;
+    const BH  = 300;
+    const M   = 18;
+    const vw  = window.innerWidth;
+    const vh  = window.innerHeight;
+    const pos = step.position || 'right';
 
-  switch (pos) {
-    case 'right':
-      left      = rect.right + margin + padding;
-      top       = rect.top + rect.height / 2 - bubbleH / 2;
-      arrowClass = 'arrow-left';
-      // Přetečení doprava
-      if (left + bubbleW > vw - margin) {
-        left      = rect.left - bubbleW - margin - padding;
-        arrowClass = 'arrow-right';
-      }
-      break;
+    let top, left, arrowClass = '';
 
-    case 'left':
-      left      = rect.left - bubbleW - margin - padding;
-      top       = rect.top + rect.height / 2 - bubbleH / 2;
-      arrowClass = 'arrow-right';
-      if (left < margin) {
-        left      = rect.right + margin + padding;
-        arrowClass = 'arrow-left';
-      }
-      break;
+    switch (pos) {
+      case 'right':
+        left = rect.right + pad + M; top = rect.top + rect.height / 2 - BH / 2; arrowClass = 'arrow-left';
+        if (left + BW > vw - M) { left = rect.left - BW - pad - M; arrowClass = 'arrow-right'; }
+        break;
+      case 'left':
+        left = rect.left - BW - pad - M; top = rect.top + rect.height / 2 - BH / 2; arrowClass = 'arrow-right';
+        if (left < M) { left = rect.right + pad + M; arrowClass = 'arrow-left'; }
+        break;
+      case 'bottom':
+        top = rect.bottom + pad + M; left = rect.left + rect.width / 2 - BW / 2; arrowClass = 'arrow-top';
+        if (top + BH > vh - M) { top = rect.top - BH - pad - M; arrowClass = 'arrow-bottom'; }
+        break;
+      case 'top':
+        top = rect.top - BH - pad - M; left = rect.left + rect.width / 2 - BW / 2; arrowClass = 'arrow-bottom';
+        if (top < M) { top = rect.bottom + pad + M; arrowClass = 'arrow-top'; }
+        break;
+    }
 
-    case 'bottom':
-      top       = rect.bottom + margin + padding;
-      left      = rect.left + rect.width / 2 - bubbleW / 2;
-      arrowClass = 'arrow-top';
-      if (top + bubbleH > vh - margin) {
-        top       = rect.top - bubbleH - margin - padding;
-        arrowClass = 'arrow-bottom';
-      }
-      break;
+    top  = Math.max(M, Math.min(top,  vh - BH - M));
+    left = Math.max(M, Math.min(left, vw - BW - M));
 
-    case 'top':
-      top       = rect.top - bubbleH - margin - padding;
-      left      = rect.left + rect.width / 2 - bubbleW / 2;
-      arrowClass = 'arrow-bottom';
-      if (top < margin) {
-        top       = rect.bottom + margin + padding;
-        arrowClass = 'arrow-top';
-      }
-      break;
-  }
-
-  // Clamp do okna
-  top  = Math.max(margin, Math.min(top,  vh - bubbleH - margin));
-  left = Math.max(margin, Math.min(left, vw - bubbleW - margin));
-
-  bubble.style.top    = `${top}px`;
-  bubble.style.left   = `${left}px`;
-  bubble.style.width  = `${bubbleW}px`;
-
-  // Nastavit třídu šipky
-  bubble.className = `tour-bubble visible ${arrowClass}`;
+    bubble.style.top    = `${top}px`;
+    bubble.style.left   = `${left}px`;
+    bubble.style.width  = `${BW}px`;
+    bubble.style.bottom = 'auto';
+    bubble.style.right  = 'auto';
+    bubble.className    = `tour-bubble visible ${arrowClass}`;
+  });
 }
 
 /* ─────────────────────────────────────────────────────
-   SHADOW HELPERS
+   MOBILE — bublina dole uprostřed
 ───────────────────────────────────────────────────── */
-function _setShadowsAroundRect(rect, padding = 8) {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const p  = padding;
-
-  const top    = document.getElementById('tourShadowTop');
-  const bottom = document.getElementById('tourShadowBottom');
-  const left   = document.getElementById('tourShadowLeft');
-  const right  = document.getElementById('tourShadowRight');
-
-  if (top) {
-    top.style.top    = '0';
-    top.style.height = `${Math.max(0, rect.top - p)}px`;
-  }
-
-  if (bottom) {
-    bottom.style.top    = `${rect.bottom + p}px`;
-    bottom.style.height = `${Math.max(0, vh - rect.bottom - p)}px`;
-  }
-
-  if (left) {
-    left.style.top    = `${rect.top - p}px`;
-    left.style.height = `${rect.height + p * 2}px`;
-    left.style.width  = `${Math.max(0, rect.left - p)}px`;
-  }
-
-  if (right) {
-    right.style.top    = `${rect.top - p}px`;
-    right.style.height = `${rect.height + p * 2}px`;
-    right.style.left   = `${rect.right + p}px`;
-    right.style.width  = `${Math.max(0, vw - rect.right - p)}px`;
-  }
-}
-
-function _setFullShadow() {
-  // Celá obrazovka zakrytá (pro kroky bez cíle)
-  ['tourShadowTop', 'tourShadowBottom', 'tourShadowLeft', 'tourShadowRight'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.style.cssText = '';
-      el.style.inset = '0';
-    }
-  });
-  _hideRing();
-}
-
-function _hideRing() {
-  const ring = document.getElementById('tourHighlightRing');
-  if (ring) {
-    ring.style.width  = '0';
-    ring.style.height = '0';
-  }
+function _mobilePosition(bubble) {
+  bubble.style.cssText = [
+    'position:fixed',
+    'left:12px',
+    'right:12px',
+    'bottom:18px',
+    'top:auto',
+    `width:${Math.min(window.innerWidth - 24, 400)}px`,
+  ].join(';');
+  bubble.className = 'tour-bubble visible';
 }
 
 function _centerBubble(bubble) {
-  const vw = window.innerWidth;
+  const vw = window.innerWidth; const vh = window.innerHeight;
+  bubble.style.top = `${Math.max(20, vh / 2 - 160)}px`;
+  bubble.style.left = `${Math.max(20, vw / 2 - 159)}px`;
+  bubble.style.width  = '318px';
+  bubble.style.bottom = 'auto';
+  bubble.style.right  = 'auto';
+  bubble.className    = 'tour-bubble visible';
+}
+
+function _setShadows(rect, pad) {
+  const vw = window.innerWidth; const vh = window.innerHeight;
+  const t  = document.getElementById('tourShadowTop');
+  const b  = document.getElementById('tourShadowBottom');
+  const l  = document.getElementById('tourShadowLeft');
+  const r  = document.getElementById('tourShadowRight');
+  if (t) { t.style.top = '0'; t.style.height = `${Math.max(0, rect.top - pad)}px`; t.style.left = '0'; t.style.right = '0'; t.style.width = ''; }
+  if (b) { b.style.top = `${rect.bottom + pad}px`; b.style.height = `${Math.max(0, vh - rect.bottom - pad)}px`; b.style.left = '0'; b.style.right = '0'; b.style.width = ''; }
+  if (l) { l.style.top = `${rect.top - pad}px`; l.style.height = `${rect.height + pad*2}px`; l.style.left = '0'; l.style.width = `${Math.max(0, rect.left - pad)}px`; l.style.right = ''; }
+  if (r) { r.style.top = `${rect.top - pad}px`; r.style.height = `${rect.height + pad*2}px`; r.style.left = `${rect.right + pad}px`; r.style.width = `${Math.max(0, vw - rect.right - pad)}px`; r.style.right = ''; }
+}
+
+function _hideShadowsAndRing() {
+  const ring = document.getElementById('tourHighlightRing');
+  if (ring) { ring.style.width = '0'; ring.style.height = '0'; }
+  // Na mobilu — jen poloprůhledná vrstva nad vším krom bubliny
   const vh = window.innerHeight;
-  bubble.style.top  = `${vh / 2 - 160}px`;
-  bubble.style.left = `${vw / 2 - 155}px`;
-  bubble.className  = 'tour-bubble visible';
+  const t  = document.getElementById('tourShadowTop');
+  const b  = document.getElementById('tourShadowBottom');
+  const l  = document.getElementById('tourShadowLeft');
+  const r  = document.getElementById('tourShadowRight');
+  if (t) { t.style.top = '0'; t.style.height = `${vh - 220}px`; t.style.left = '0'; t.style.right = '0'; t.style.width = ''; }
+  if (b) { b.style.height = '0'; }
+  if (l) { l.style.width = '0'; }
+  if (r) { r.style.width = '0'; }
 }
 
 /* ═══════════════════════════════════════════════════════
-   UKONČENÍ PRŮVODCE
+   KONEC PRŮVODCE
 ═══════════════════════════════════════════════════════ */
 function endTour() {
   _tourActive = false;
+  if (window.innerWidth <= 960 && typeof closeSidebar === 'function') closeSidebar();
 
-  // Skrýt stíny a ring
   document.querySelectorAll('.tour-shadow').forEach(el => el.classList.remove('visible'));
-
   const ring = document.getElementById('tourHighlightRing');
   if (ring) ring.classList.remove('visible');
 
-  // Skrýt bublinu s animací
   const bubble = document.getElementById('tourBubble');
   if (bubble) {
     bubble.classList.add('hiding');
-    setTimeout(() => {
-      bubble.classList.remove('visible', 'hiding');
-      // Reset šipky
-      bubble.className = 'tour-bubble';
-    }, 220);
+    setTimeout(() => { bubble.className = 'tour-bubble'; }, 250);
   }
 
-  // Zapamatovat, že průvodce byl dokončen
   localStorage.setItem('planify_tour_done', '1');
-
   showToast('Průvodce dokončen! Přejeme příjemné plánování. 🚀', 'success', 4000);
 }
 
 /* ═══════════════════════════════════════════════════════
-   EVENT LISTENERY PRŮVODCE
+   EVENTS
 ═══════════════════════════════════════════════════════ */
-
-// Tlačítko Nápověda (spustit průvodce)
 document.getElementById('tourStartBtn')?.addEventListener('click', () => {
-  // Reset — znovu od začátku
   localStorage.removeItem('planify_tour_done');
   startTour();
 });
 
-// Tlačítko Další
 document.getElementById('tourNext')?.addEventListener('click', () => {
-  if (_tourStep >= TOUR_STEPS.length - 1) {
-    endTour();
-  } else {
-    _showStep(_tourStep + 1, 'next');
-  }
+  if (_tourStep >= TOUR_STEPS.length - 1) endTour();
+  else _showStep(_tourStep + 1, 'next');
 });
 
-// Tlačítko Zpět
 document.getElementById('tourPrev')?.addEventListener('click', () => {
   if (_tourStep > 0) _showStep(_tourStep - 1, 'prev');
 });
 
-// Přeskočit průvodce
 document.getElementById('tourSkip')?.addEventListener('click', endTour);
-
-// Zavřít průvodce (X tlačítko)
 document.getElementById('tourClose')?.addEventListener('click', endTour);
 
-// Klávesnice
 document.addEventListener('keydown', e => {
   if (!_tourActive) return;
-
-  if (e.key === 'ArrowRight' || e.key === 'Enter') {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight' || (e.key === 'Enter' && !e.target.closest('.tour-bubble [data-tour-dot]'))) {
     e.preventDefault();
     if (_tourStep >= TOUR_STEPS.length - 1) endTour();
     else _showStep(_tourStep + 1, 'next');
   }
-
-  if (e.key === 'ArrowLeft') {
-    e.preventDefault();
-    if (_tourStep > 0) _showStep(_tourStep - 1, 'prev');
-  }
-
-  if (e.key === 'Escape') {
-    e.preventDefault();
-    endTour();
-  }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); if (_tourStep > 0) _showStep(_tourStep - 1, 'prev'); }
+  if (e.key === 'Escape')    { e.preventDefault(); endTour(); }
 });
 
-// Přepočítat pozici při resize okna
 let _resizeTimer = null;
 window.addEventListener('resize', () => {
   if (!_tourActive) return;
   clearTimeout(_resizeTimer);
-  _resizeTimer = setTimeout(() => {
-    _showStep(_tourStep);
-  }, 200);
+  _resizeTimer = setTimeout(() => _showStep(_tourStep), 220);
+});
+
+// Spustit scheduler připomínek
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof startReminderScheduler === 'function') startReminderScheduler();
 });
