@@ -495,3 +495,39 @@ function _isItemActive(item) {
     default: return false;
   }
 }
+
+
+/* ─────────────────────────────────────────────────────
+   AUTO-REGISTRACE
+   Funguje i se starším app.js — shop se sám zaregistruje
+   do navigate() a SECTION_NAMES
+───────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Přidat překlady do SECTION_NAMES pokud existuje
+  if (typeof SECTION_NAMES !== 'undefined') {
+    SECTION_NAMES['shop']     = 'XP Obchod';
+    SECTION_NAMES['settings'] = 'Nastavení';
+  }
+
+  // 2. Patch navigate() pokud nezvládá shop/settings
+  if (typeof navigate === 'function') {
+    const _origNavigate = navigate;
+    window.navigate = function(section) {
+      _origNavigate(section);
+      // Doplnit render pro nové sekce
+      if (section === 'shop'     && typeof renderShop     === 'function') renderShop();
+      if (section === 'settings' && typeof renderSettings === 'function') renderSettings();
+      // Opravit topbar title pokud zobrazuje surový klíč
+      const titleEl = document.getElementById('topbarTitle');
+      if (titleEl && (titleEl.textContent === 'shop' || titleEl.textContent === 'settings')) {
+        titleEl.textContent = section === 'shop' ? 'XP Obchod' : 'Nastavení';
+      }
+    };
+  }
+
+  // 3. Aplikovat efekty obchodu (avatary, motivy)
+  if (typeof initShopEffects === 'function') initShopEffects();
+
+  // 4. Aplikovat nastavení
+  if (typeof initSettings === 'function') initSettings();
+});
