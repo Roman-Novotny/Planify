@@ -4,13 +4,14 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Planify — Váš osobní dashboard</title>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="img/logo.png"/>
+  <link rel="apple-touch-icon" href="img/logo.png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/app.css"/>
   <link rel="stylesheet" href="css/tour.css"/>
   <link rel="stylesheet" href="css/cookie.css"/>
-  <link rel="icon" type="image/png" href="img/logo.png"/>
-  <link rel="apple-touch-icon" href="img/logo.png"/>
 </head>
 <body>
 
@@ -156,7 +157,7 @@
   <div class="guest-banner hidden" id="guestBanner" role="alert">
     <span class="guest-banner-icon">⚠️</span>
     <div class="guest-banner-text">
-      <strong>Režim hosta:</strong> Vaše data se <strong>neukládají</strong> — existují pouze v tomto prohlížeči a zmizí po zavření záložky.
+      <strong>Režim hosta:</strong> Data se <strong>neukládají</strong> — existují jen v tomto prohlížeči a zmizí po zavření záložky.
     </div>
     <div class="guest-banner-actions">
       <button class="guest-banner-login" id="guestRegisterBtn">Zaregistrovat se a uložit data →</button>
@@ -628,6 +629,14 @@
         <label for="habitGoal">Cílový počet dní</label>
         <input type="number" id="habitGoal" value="30" min="1" max="365"/>
       </div>
+      <div class="form-group">
+        <label for="habitReminderTime">⏰ Denní připomínka (volitelné)</label>
+        <input type="time" id="habitReminderTime"
+               title="Upozorní vás v tento čas, pokud návyk ještě není splněn"/>
+        <span style="font-size:11px;color:var(--text-muted);margin-top:2px;display:block">
+          Funguje i když je aplikace zavřená (vyžaduje povolení notifikací).
+        </span>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close="habitModal">Zrušit</button>
@@ -925,44 +934,19 @@
 <script src="js/tour.js"></script>
 <script src="js/app.js"></script>
 
-
-<!-- ═══════════════════════════════════════
-     COOKIE BANNER (pro app.html)
-═══════════════════════════════════════ -->
+<!-- Cookie banner pro app.html -->
 <div class="cookie-banner" id="cookieBanner" role="dialog" aria-labelledby="cookieBannerTitle" aria-hidden="true">
   <div class="cookie-inner">
     <div class="cookie-icon" aria-hidden="true">🍪</div>
     <div class="cookie-content">
       <h3 id="cookieBannerTitle">Používáme cookies</h3>
-      <p>Pro správné fungování aplikace používáme nezbytné cookies.
+      <p>Pro správné fungování aplikace potřebujeme nezbytné cookies.
         <button type="button" class="link-btn" id="cookieDetailBtn">Více informací</button>
       </p>
     </div>
     <div class="cookie-actions">
       <button class="cookie-btn cookie-reject" id="cookieRejectBtn">Jen nezbytné</button>
       <button class="cookie-btn cookie-accept" id="cookieAcceptBtn">Přijmout vše</button>
-    </div>
-  </div>
-</div>
-
-<!-- Privacy modal zkrácená verze pro app.html -->
-<div class="legal-overlay hidden" id="privacyOverlay" role="dialog" aria-modal="true">
-  <div class="legal-modal">
-    <div class="legal-header">
-      <h2>Zásady ochrany osobních údajů</h2>
-      <button class="legal-close" id="closePrivacyBtn">✕</button>
-    </div>
-    <div class="legal-body">
-      <p class="legal-date">Platné od: 1. ledna 2025 · GDPR</p>
-      <h3>Jaké údaje zpracováváme</h3>
-      <p>E-mail (přihlášení), data aplikace (úkoly, poznámky…), session cookie.</p>
-      <h3>Zabezpečení</h3>
-      <p>Vše je uloženo v Supabase (AWS EU) s šifrováním TLS. Nikdo jiný k datům nemá přístup.</p>
-      <h3>Vaše práva</h3>
-      <p>Přístup, oprava, výmaz — vše přímo v aplikaci. Smazáním účtu smažete veškerá data.</p>
-    </div>
-    <div class="legal-footer">
-      <button class="btn-auth" id="acceptPrivacyBtn" style="max-width:180px">Rozumím</button>
     </div>
   </div>
 </div>
