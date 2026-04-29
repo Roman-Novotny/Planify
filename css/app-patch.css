@@ -680,3 +680,61 @@ body.has-guest-banner .section.active {
   flex-shrink: 0;
   line-height: 1;
 }
+
+/* ══════════════════════════════════════════════════════
+   OPRAVA: Settings a Shop — plná šířka sekce
+══════════════════════════════════════════════════════ */
+
+/* Settings grid — celá šířka, ne omezeno na 640px */
+#section-settings .settings-grid {
+  max-width: 100% !important;
+  width: 100%;
+}
+
+/* Karty v nastavení — plná šířka */
+#section-settings .settings-card {
+  width: 100%;
+}
+
+/* Shop grid — více sloupců na velkém monitoru */
+#section-shop .shop-grid {
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  max-width: 100%;
+}
+
+/* Shop XP header — plná šířka */
+#section-shop .shop-xp-header {
+  max-width: 100%;
+}
+
+/* ══════════════════════════════════════════════════════
+   OPRAVA: Theme toggle label synchronizace
+   Ikona se mění přes JS, toto zajišťuje CSS fallback
+══════════════════════════════════════════════════════ */
+
+/* Světlý režim — zobrazit správný text */
+[data-theme="light"] #themeLabel::before { content: ''; }
+[data-theme="dark"]  #themeLabel::before { content: ''; }
+
+/* ══════════════════════════════════════════════════════
+   OPRAVA: No-animations mode
+══════════════════════════════════════════════════════ */
+.no-animations *,
+.no-animations *::before,
+.no-animations *::after {
+  animation-duration:   0.001ms !important;
+  transition-duration:  0.001ms !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   OPRAVA: Kompaktní mód
+══════════════════════════════════════════════════════ */
+.compact-mode .section {
+  padding: 14px 18px 32px !important;
+}
+.compact-mode .task-item    { padding: 8px 12px !important; }
+.compact-mode .habit-card   { padding: 12px !important; }
+.compact-mode .goal-card    { padding: 12px !important; }
+.compact-mode .note-card    { padding: 12px !important; }
+.compact-mode .widget-body  { padding: 10px 14px !important; }
+.compact-mode .nav-item     { padding: 7px 10px !important; }
