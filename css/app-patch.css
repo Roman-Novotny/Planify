@@ -1,17 +1,11 @@
 /* ═══════════════════════════════════════════════════════
-   Planify — app-patch.css
-   Přidejte tento soubor do <head> za app.css:
+   Planify — app-patch.css  v3
+   Přidejte za app.css:
    <link rel="stylesheet" href="css/app-patch.css"/>
-
-   Opravy:
-   1. Guest banner — nepřekrývá obsah
-   2. Sidebar search — lupa vlevo od textu
-   3. Pomodoro mobile — tlačítka pod sebou
-   4. Nové sekce: Nastavení + XP Obchod
 ═══════════════════════════════════════════════════════ */
 
 /* ══════════════════════════════════════════════════════
-   1. GUEST BANNER — posun obsahu dolů aby nepřekrýval
+   1. GUEST BANNER — posun obsahu dolů
 ══════════════════════════════════════════════════════ */
 .guest-banner {
   position: fixed;
@@ -19,10 +13,8 @@
   left: var(--sidebar-w, 248px);
   right: 0;
   z-index: 90;
-  background: linear-gradient(135deg,
-    rgba(245, 158, 11, 0.13),
-    rgba(251, 191, 36, 0.07));
-  border-bottom: 1px solid rgba(245, 158, 11, 0.32);
+  background: linear-gradient(135deg, rgba(245,158,11,0.13), rgba(251,191,36,0.07));
+  border-bottom: 1px solid rgba(245,158,11,0.32);
   padding: 10px 22px;
   display: flex;
   align-items: center;
@@ -33,708 +25,257 @@
   min-height: 46px;
   backdrop-filter: blur(4px);
 }
-
-/* Na mobilu — plná šířka */
-@media (max-width: 960px) {
-  .guest-banner { left: 0; }
-}
-
-.guest-banner-icon { font-size: 16px; flex-shrink: 0; line-height: 1; }
+@media (max-width: 960px) { .guest-banner { left: 0; } }
 
 .guest-banner-text {
-  flex: 1;
-  min-width: 0;
-  line-height: 1.4;
-  font-size: 12.5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex: 1; min-width: 0; line-height: 1.4; font-size: 12.5px;
+}
+@media (max-width: 540px) {
+  .guest-banner { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
+  .guest-banner-text { font-size: 12px; }
 }
 
-/* Na mobilu — zalomit text */
-@media (max-width: 640px) {
-  .guest-banner-text { white-space: normal; font-size: 12px; }
-  .guest-banner { padding: 8px 14px; gap: 8px; }
-}
-
-.guest-banner-actions {
-  display: flex;
-  gap: 7px;
-  flex-shrink: 0;
-  align-items: center;
-}
-
+.guest-banner-actions { display: flex; gap: 7px; flex-shrink: 0; align-items: center; }
 .guest-banner-login {
-  padding: 6px 13px;
-  background: var(--orange, #FBBF24);
-  color: #18192A;
-  border: none;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  padding: 6px 13px; background: var(--orange, #FBBF24); color: #18192A;
+  border: none; border-radius: 6px; font-family: inherit;
+  font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all .2s;
   white-space: nowrap;
 }
 .guest-banner-login:hover { background: #F59E0B; transform: translateY(-1px); }
-
 .guest-banner-dismiss {
-  width: 26px; height: 26px;
-  display: grid; place-items: center;
-  background: rgba(245, 158, 11, 0.15);
-  color: var(--orange, #FBBF24);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+  width: 26px; height: 26px; display: grid; place-items: center;
+  background: rgba(245,158,11,.15); color: var(--orange, #FBBF24);
+  border: 1px solid rgba(245,158,11,.3); border-radius: 6px;
+  font-size: 12px; cursor: pointer; transition: all .2s; flex-shrink: 0;
 }
-.guest-banner-dismiss:hover { background: rgba(245, 158, 11, 0.28); }
+body.has-guest-banner .section.active { padding-top: 72px !important; }
 
-/* Posunout sekce dolů o výšku banneru */
-.guest-mode-active .section {
-  margin-top: 0;
-  /* padding-top se přidá přes JS class */
-}
-
-/* Když je banner viditelný, přidat padding-top sekcím */
-body.has-guest-banner .section.active {
-  padding-top: 72px !important;
-}
 
 /* ══════════════════════════════════════════════════════
-   2. SIDEBAR SEARCH — lupa vlevo, text nekryje
+   2. SIDEBAR SEARCH — lupa vlevo
 ══════════════════════════════════════════════════════ */
-.sidebar-search {
-  position: relative;
-  padding: 10px 12px 6px;
-  flex-shrink: 0;
-}
-
+.sidebar-search { position: relative; padding: 10px 12px 6px; flex-shrink: 0; }
 .sidebar-search .search-icon {
-  position: absolute;
-  left: 22px;
-  top: 50%;
-  transform: translateY(2px);
-  color: var(--text-muted);
-  font-size: 13px;
-  pointer-events: none;
-  z-index: 2;
-  line-height: 1;
-  margin-top: -2px;
+  position: absolute; left: 22px; top: 50%;
+  transform: translateY(2px); color: var(--text-muted);
+  font-size: 13px; pointer-events: none; z-index: 2; line-height: 1; margin-top: -2px;
 }
+.sidebar-search input { padding-left: 30px !important; padding-right: 12px !important; }
 
-.sidebar-search input {
-  padding-left: 30px !important;  /* místo pro ikonu lupy */
-  padding-right: 12px !important;
-}
 
 /* ══════════════════════════════════════════════════════
-   3. POMODORO MOBILE — tlačítka režimů pod sebou
+   3. SETTINGS & SHOP — plná šířka uvnitř sekce
 ══════════════════════════════════════════════════════ */
-@media (max-width: 640px) {
-  .pomo-modes {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .pomo-mode {
-    padding: 10px 14px;
-    font-size: 13.5px;
-    text-align: left;
-  }
-
-  .timer-wrapper {
-    width: 190px;
-    height: 190px;
-  }
-
-  .timer-time {
-    font-size: 38px;
-  }
-
-  .pomo-controls {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .pomo-main {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .pomodoro-container {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ══════════════════════════════════════════════════════
-   4. XP BAR v sidebarú — vylepšený
-══════════════════════════════════════════════════════ */
-.xp-bar-container {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 9px 11px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-
-.xp-bar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.xp-level-badge {
-  background: rgba(245, 158, 11, 0.15);
-  color: #F59E0B;
-  border-radius: 99px;
-  padding: 2px 9px;
-  font-size: 11px;
-  font-weight: 700;
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  white-space: nowrap;
-}
-
-.xp-points {
-  color: var(--text-muted);
-  font-size: 10.5px;
-  white-space: nowrap;
-}
-
-.xp-bar-track {
-  height: 5px;
-  background: var(--bg-overlay);
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.xp-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #F59E0B, #FCD34D);
-  border-radius: 99px;
-  transition: width 0.7s cubic-bezier(0.34, 1.2, 0.64, 1);
-}
-
-/* ══════════════════════════════════════════════════════
-   5. XP OBCHOD — sekce
-══════════════════════════════════════════════════════ */
-.shop-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 14px;
-  margin-top: 4px;
-}
-
-.shop-item {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  text-align: center;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.shop-item:hover {
-  border-color: rgba(245, 158, 11, 0.35);
-  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.08);
-  transform: translateY(-2px);
-}
-
-.shop-item.owned {
-  border-color: var(--green);
-  background: linear-gradient(135deg, var(--bg-surface), rgba(52,211,153,0.04));
-}
-
-.shop-item.locked {
-  opacity: 0.55;
-}
-
-.shop-item-icon {
-  font-size: 40px;
-  line-height: 1;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));
-}
-
-.shop-item-name {
-  font-family: 'Syne', sans-serif;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.shop-item-desc {
-  font-size: 11.5px;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-.shop-item-price {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  border-radius: 99px;
-  padding: 4px 12px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #F59E0B;
-}
-
-.shop-item-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 99px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.shop-item-badge.new {
-  background: var(--accent-dim);
-  color: var(--accent-light);
-}
-
-.shop-item-badge.popular {
-  background: rgba(248, 113, 113, 0.15);
-  color: var(--red);
-}
-
-.btn-buy {
+#section-settings,
+#section-shop {
   width: 100%;
-  padding: 8px 0;
-  border-radius: var(--radius-sm);
-  border: none;
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-.btn-buy.can-buy {
-  background: linear-gradient(135deg, #F59E0B, #FCD34D);
-  color: #18192A;
-  box-shadow: 0 2px 10px rgba(245,158,11,0.3);
-}
-
-.btn-buy.can-buy:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(245,158,11,0.4);
-}
-
-.btn-buy.cant-buy {
-  background: var(--bg-overlay);
-  color: var(--text-muted);
-  cursor: not-allowed;
-}
-
-.btn-buy.is-owned {
-  background: var(--green-dim);
-  color: var(--green);
-  cursor: default;
-}
-
-/* Avatar preview */
-.avatar-preview {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--bg-elevated);
-  border: 2px solid var(--border);
-  display: grid;
-  place-items: center;
-  font-size: 32px;
-  transition: all 0.2s ease;
-}
-
-.shop-item:hover .avatar-preview {
-  border-color: rgba(245, 158, 11, 0.4);
-  transform: scale(1.08);
-}
-
-/* XP Přehled v obchodě */
-.shop-xp-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--bg-surface);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  border-radius: var(--radius-md);
-  padding: 14px 20px;
-  margin-bottom: 22px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.shop-xp-balance {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.shop-xp-icon { font-size: 26px; }
-
-.shop-xp-amount {
-  font-family: 'Syne', sans-serif;
-  font-size: 22px;
-  font-weight: 800;
-  color: #F59E0B;
-}
-
-.shop-xp-label {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 1px;
-}
-
-.shop-tabs {
-  display: flex;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 3px;
-  gap: 2px;
-}
-
-.shop-tab {
-  padding: 6px 14px;
-  border-radius: calc(var(--radius-sm) - 2px);
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.shop-tab.active {
-  background: var(--accent);
-  color: #fff;
-}
-
-/* ══════════════════════════════════════════════════════
-   6. NASTAVENÍ — sekce
-══════════════════════════════════════════════════════ */
-.settings-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 640px;
-}
-
-.settings-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.settings-card-header {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.settings-card-icon {
-  font-size: 16px;
-  width: 32px;
-  height: 32px;
-  background: var(--bg-elevated);
-  border-radius: var(--radius-sm);
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-}
-
-.settings-card-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.settings-rows {
-  display: flex;
-  flex-direction: column;
-}
-
-.settings-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border-subtle);
-  gap: 16px;
-}
-
-.settings-row:last-child { border-bottom: none; }
-
-.settings-row-info { flex: 1; min-width: 0; }
-
-.settings-row-label {
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin-bottom: 2px;
-}
-
-.settings-row-desc {
-  font-size: 11.5px;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-
-/* Toggle switch */
-.toggle-switch {
-  position: relative;
-  width: 42px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-  position: absolute;
-}
-
-.toggle-track {
-  position: absolute;
-  inset: 0;
-  background: var(--bg-overlay);
-  border-radius: 99px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid var(--border);
-}
-
-.toggle-thumb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 16px;
-  height: 16px;
-  background: var(--text-muted);
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  pointer-events: none;
-}
-
-.toggle-switch input:checked + .toggle-track {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.toggle-switch input:checked + .toggle-track + .toggle-thumb,
-.toggle-switch input:checked ~ .toggle-thumb {
-  transform: translateX(18px);
-  background: #fff;
-}
-
-/* Přepsat — thumb je child of track */
-.toggle-track .toggle-thumb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 16px;
-  height: 16px;
-  background: var(--text-muted);
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.toggle-switch input:checked + .toggle-track .toggle-thumb {
-  transform: translateX(18px);
-  background: #fff;
-}
-
-/* Settings — danger zone */
-.settings-danger {
-  border-color: rgba(248, 113, 113, 0.25) !important;
-}
-
-.settings-danger .settings-card-header {
-  border-bottom-color: rgba(248, 113, 113, 0.15);
-}
-
-/* Accent select v nastavení */
-.accent-picker {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.accent-dot {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 3px solid transparent;
-  transition: all 0.18s ease;
-  flex-shrink: 0;
-}
-
-.accent-dot.active {
-  border-color: var(--text-primary);
-  transform: scale(1.18);
-  box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px currentColor;
-}
-
-.accent-dot:hover:not(.active) {
-  transform: scale(1.12);
-}
-
-/* Font size option */
-.font-size-btns {
-  display: flex;
-  gap: 6px;
-}
-
-.font-size-btn {
-  padding: 5px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.font-size-btn.active {
-  background: var(--accent-dim);
-  border-color: var(--accent);
-  color: var(--accent-light);
-}
-
-/* Stats v nastavení */
-.stats-overview {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.stat-mini {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  text-align: center;
-}
-
-.stat-mini-val {
-  font-family: 'Syne', sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--accent-light);
-}
-
-.stat-mini-label {
-  font-size: 10.5px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-/* ══════════════════════════════════════════════════════
-   7. NAV POLOŽKY — Nastavení a Obchod
-══════════════════════════════════════════════════════ */
-.nav-divider {
-  height: 1px;
-  background: var(--border-subtle);
-  margin: 6px 10px;
-}
-
-/* ══════════════════════════════════════════════════════
-   8. ACTIVE AVATAR v topbaru / sidebarú
-══════════════════════════════════════════════════════ */
-.user-avatar-img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  background: var(--accent-dim);
-  border: 1px solid rgba(99,102,241,0.2);
-  flex-shrink: 0;
-  line-height: 1;
-}
-
-/* ══════════════════════════════════════════════════════
-   OPRAVA: Settings a Shop — plná šířka sekce
-══════════════════════════════════════════════════════ */
-
-/* Settings grid — celá šířka, ne omezeno na 640px */
 #section-settings .settings-grid {
   max-width: 100% !important;
   width: 100%;
 }
 
-/* Karty v nastavení — plná šířka */
-#section-settings .settings-card {
-  width: 100%;
-}
+#section-settings .settings-card { width: 100%; }
 
-/* Shop grid — více sloupců na velkém monitoru */
+#section-shop .shop-xp-header { max-width: 100%; width: 100%; }
+
 #section-shop .shop-grid {
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   max-width: 100%;
 }
 
-/* Shop XP header — plná šířka */
-#section-shop .shop-xp-header {
-  max-width: 100%;
+/* Stats row v profilu — 3 sloupce */
+#section-settings .stats-overview {
+  grid-template-columns: repeat(3, 1fr);
 }
 
-/* ══════════════════════════════════════════════════════
-   OPRAVA: Theme toggle label synchronizace
-   Ikona se mění přes JS, toto zajišťuje CSS fallback
-══════════════════════════════════════════════════════ */
-
-/* Světlý režim — zobrazit správný text */
-[data-theme="light"] #themeLabel::before { content: ''; }
-[data-theme="dark"]  #themeLabel::before { content: ''; }
 
 /* ══════════════════════════════════════════════════════
-   OPRAVA: No-animations mode
+   4. POMODORO MOBILE
 ══════════════════════════════════════════════════════ */
-.no-animations *,
-.no-animations *::before,
-.no-animations *::after {
-  animation-duration:   0.001ms !important;
-  transition-duration:  0.001ms !important;
+@media (max-width: 640px) {
+  .pomo-modes { flex-direction: column; gap: 4px; }
+  .pomo-mode  { padding: 10px 14px; font-size: 13.5px; text-align: left; }
+  .timer-wrapper { width: 185px; height: 185px; }
+  .timer-time    { font-size: 36px; }
+  .pomo-controls { flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .pomo-main     { width: 100%; justify-content: center; }
+  .pomodoro-container { grid-template-columns: 1fr; }
 }
 
+
 /* ══════════════════════════════════════════════════════
-   OPRAVA: Kompaktní mód
+   5. OBECNÁ MOBILNÍ RESPONZIVITA
 ══════════════════════════════════════════════════════ */
-.compact-mode .section {
-  padding: 14px 18px 32px !important;
+@media (max-width: 640px) {
+  /* Shop grid — 2 sloupce na mobilu */
+  #section-shop .shop-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .shop-item { padding: 14px 10px; }
+  .shop-item-icon, .avatar-preview { font-size: 30px; width: 52px; height: 52px; }
+  .shop-xp-header { flex-direction: column; gap: 10px; }
+  .shop-tabs { width: 100%; overflow-x: auto; }
+
+  /* Settings — plná šířka */
+  #section-settings .stats-overview { grid-template-columns: repeat(3, 1fr); }
+  .settings-row { flex-wrap: wrap; gap: 10px; }
+  .accent-picker { flex-wrap: wrap; gap: 7px; }
+  .font-size-btns { gap: 5px; }
 }
-.compact-mode .task-item    { padding: 8px 12px !important; }
-.compact-mode .habit-card   { padding: 12px !important; }
-.compact-mode .goal-card    { padding: 12px !important; }
-.compact-mode .note-card    { padding: 12px !important; }
-.compact-mode .widget-body  { padding: 10px 14px !important; }
-.compact-mode .nav-item     { padding: 7px 10px !important; }
+
+@media (max-width: 400px) {
+  /* Velmi malé telefony */
+  #section-shop .shop-grid { grid-template-columns: 1fr; }
+  .shop-xp-amount { font-size: 18px; }
+}
+
+
+/* ══════════════════════════════════════════════════════
+   6. XP BAR
+══════════════════════════════════════════════════════ */
+.xp-bar-container {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 9px 11px;
+  display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px;
+}
+.xp-bar-header { display: flex; justify-content: space-between; align-items: center; }
+.xp-level-badge {
+  background: rgba(245,158,11,.15); color: #F59E0B;
+  border-radius: 99px; padding: 2px 9px; font-size: 11px;
+  font-weight: 700; border: 1px solid rgba(245,158,11,.25); white-space: nowrap;
+}
+.xp-points { color: var(--text-muted); font-size: 10.5px; white-space: nowrap; }
+.xp-bar-track { height: 5px; background: var(--bg-overlay); border-radius: 99px; overflow: hidden; }
+.xp-bar-fill {
+  height: 100%; background: linear-gradient(90deg, #F59E0B, #FCD34D);
+  border-radius: 99px; transition: width .7s cubic-bezier(.34,1.2,.64,1);
+}
+
+
+/* ══════════════════════════════════════════════════════
+   7. SHOP STYLY
+══════════════════════════════════════════════════════ */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px; margin-top: 4px;
+}
+.shop-item {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px 16px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; text-align: center; transition: all .2s; position: relative; overflow: hidden;
+}
+.shop-item:hover { border-color: rgba(245,158,11,.35); box-shadow: 0 4px 20px rgba(245,158,11,.08); transform: translateY(-2px); }
+.shop-item.owned { border-color: var(--green); background: linear-gradient(135deg, var(--bg-surface), rgba(52,211,153,.04)); }
+.shop-item.locked { opacity: .55; }
+.avatar-preview {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--bg-elevated); border: 2px solid var(--border);
+  display: grid; place-items: center; font-size: 32px; transition: all .2s;
+}
+.shop-item:hover .avatar-preview { border-color: rgba(245,158,11,.4); transform: scale(1.08); }
+.shop-item-name { font-family: 'Syne', sans-serif; font-size: 13.5px; font-weight: 700; color: var(--text-primary); }
+.shop-item-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
+.shop-item-price {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.25);
+  border-radius: 99px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; color: #F59E0B;
+}
+.shop-item-badge {
+  position: absolute; top: 10px; right: 10px;
+  font-size: 10px; font-weight: 700; padding: 2px 7px;
+  border-radius: 99px; text-transform: uppercase; letter-spacing: .4px;
+}
+.shop-item-badge.new     { background: var(--accent-dim); color: var(--accent-light); }
+.shop-item-badge.popular { background: rgba(248,113,113,.15); color: var(--red); }
+.btn-buy {
+  width: 100%; padding: 8px 0; border-radius: var(--radius-sm);
+  border: none; font-family: inherit; font-size: 12.5px;
+  font-weight: 600; cursor: pointer; transition: all .2s;
+}
+.btn-buy.can-buy {
+  background: linear-gradient(135deg, #F59E0B, #FCD34D);
+  color: #18192A; box-shadow: 0 2px 10px rgba(245,158,11,.3);
+}
+.btn-buy.can-buy:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(245,158,11,.4); }
+.btn-buy.cant-buy { background: var(--bg-overlay); color: var(--text-muted); cursor: not-allowed; }
+.btn-buy.is-owned { background: var(--green-dim); color: var(--green); cursor: default; }
+
+.shop-xp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-surface); border: 1px solid rgba(245,158,11,.25);
+  border-radius: var(--radius-md); padding: 14px 20px; margin-bottom: 22px;
+  flex-wrap: wrap; gap: 12px;
+}
+.shop-xp-balance { display: flex; align-items: center; gap: 10px; }
+.shop-xp-icon { font-size: 26px; }
+.shop-xp-amount { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: #F59E0B; }
+.shop-xp-label { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.shop-tabs {
+  display: flex; background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 3px; gap: 2px;
+}
+.shop-tab {
+  padding: 6px 14px; border-radius: calc(var(--radius-sm) - 2px);
+  border: none; background: transparent; color: var(--text-secondary);
+  font-family: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all .2s;
+}
+.shop-tab.active { background: var(--accent); color: #fff; }
+
+
+/* ══════════════════════════════════════════════════════
+   8. SETTINGS STYLY
+══════════════════════════════════════════════════════ */
+.settings-grid { display: flex; flex-direction: column; gap: 10px; max-width: 100%; width: 100%; }
+.settings-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; width: 100%; }
+.settings-card-header { padding: 14px 20px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 10px; }
+.settings-card-icon { font-size: 16px; width: 32px; height: 32px; background: var(--bg-elevated); border-radius: var(--radius-sm); display: grid; place-items: center; flex-shrink: 0; }
+.settings-card-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+.settings-rows { display: flex; flex-direction: column; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border-subtle); gap: 16px; }
+.settings-row:last-child { border-bottom: none; }
+.settings-row-info { flex: 1; min-width: 0; }
+.settings-row-label { font-size: 13.5px; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; }
+.settings-row-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+.toggle-switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-track { position: absolute; inset: 0; background: var(--bg-overlay); border-radius: 99px; cursor: pointer; transition: all .2s; border: 1px solid var(--border); }
+.toggle-track .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: var(--text-muted); border-radius: 50%; transition: all .2s; }
+.toggle-switch input:checked + .toggle-track { background: var(--accent); border-color: var(--accent); }
+.toggle-switch input:checked + .toggle-track .toggle-thumb { transform: translateX(18px); background: #fff; }
+.accent-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+.accent-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all .18s; flex-shrink: 0; }
+.accent-dot.active { border-color: var(--text-primary); transform: scale(1.18); }
+.accent-dot:hover:not(.active) { transform: scale(1.12); }
+.font-size-btns { display: flex; gap: 6px; }
+.font-size-btn { padding: 5px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-secondary); font-family: inherit; cursor: pointer; transition: all .2s; }
+.font-size-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent-light); }
+.stats-overview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+.stat-mini { background: var(--bg-elevated); border-radius: var(--radius-sm); padding: 12px 14px; text-align: center; }
+.stat-mini-val { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--accent-light); }
+.stat-mini-label { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
+.settings-danger { border-color: rgba(248,113,113,.25) !important; }
+.nav-divider { height: 1px; background: var(--border-subtle); margin: 6px 10px; }
+.user-avatar-img { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 18px; background: var(--accent-dim); border: 1px solid rgba(99,102,241,.2); flex-shrink: 0; line-height: 1; }
+
+
+/* ══════════════════════════════════════════════════════
+   9. NO-ANIMATIONS & COMPACT MODE
+══════════════════════════════════════════════════════ */
+.no-animations *, .no-animations *::before, .no-animations *::after {
+  animation-duration: .001ms !important; transition-duration: .001ms !important;
+}
+.compact-mode .section     { padding: 14px 18px 32px !important; }
+.compact-mode .task-item   { padding: 8px 12px !important; }
+.compact-mode .habit-card  { padding: 12px !important; }
+.compact-mode .goal-card   { padding: 12px !important; }
+.compact-mode .note-card   { padding: 12px !important; }
+.compact-mode .widget-body { padding: 10px 14px !important; }
+.compact-mode .nav-item    { padding: 7px 10px !important; }
