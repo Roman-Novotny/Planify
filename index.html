@@ -3,10 +3,17 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Planify — Přihlášení</title>
+  <title>Planify — Váš osobní dashboard</title>
+
+  <!-- Favicon z logo.png -->
+  <link rel="icon" type="image/png" href="img/logo.png"/>
+  <link rel="apple-touch-icon" href="img/logo.png"/>
+
+  <!-- Fonty -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/auth.css"/>
+  <link rel="stylesheet" href="css/cookie.css"/>
 </head>
 <body>
 
@@ -19,112 +26,67 @@
   </div>
 
   <main class="auth-wrap">
-    <!-- Karta -->
     <div class="auth-card">
 
       <!-- Logo -->
       <div class="auth-logo">
         <picture>
-          <!-- Světlý režim: logo-text-svet.png -->
           <source media="(prefers-color-scheme: light)" srcset="img/logo-text-svet.png"/>
-          <!-- Výchozí (tmavý): logo-text-tmav.png -->
-          <img
-            src="img/logo-text-tmav.png"
-            alt="Planify"
-            class="logo-img"
-            id="authLogoImg"
-          />
+          <img src="img/logo-text-tmav.png" alt="Planify" class="logo-img" id="authLogoImg"/>
         </picture>
       </div>
 
       <p class="auth-tagline">Váš osobní produktivní dashboard</p>
 
-      <!-- Přepínač tabů -->
+      <!-- Taby -->
       <div class="auth-tabs" role="tablist">
-        <button class="auth-tab active" data-tab="login" role="tab" aria-selected="true">
-          Přihlásit se
-        </button>
-        <button class="auth-tab" data-tab="register" role="tab" aria-selected="false">
-          Registrace
-        </button>
+        <button class="auth-tab active" data-tab="login"    role="tab" aria-selected="true">Přihlásit se</button>
+        <button class="auth-tab"        data-tab="register" role="tab" aria-selected="false">Registrace</button>
       </div>
 
       <!-- ── PŘIHLÁŠENÍ ── -->
       <form class="auth-form active" id="loginForm" novalidate autocomplete="on">
-
         <div class="form-group">
           <label for="loginEmail">E-mail</label>
           <div class="input-wrap">
             <span class="input-icon">✉</span>
-            <input
-              type="email"
-              id="loginEmail"
-              placeholder="vas@email.cz"
-              autocomplete="email"
-              required
-            />
+            <input type="email" id="loginEmail" placeholder="vas@email.cz" autocomplete="email" required/>
           </div>
           <span class="field-error" id="loginEmailErr" role="alert"></span>
         </div>
-
         <div class="form-group">
           <label for="loginPassword">Heslo</label>
           <div class="input-wrap password-wrap">
             <span class="input-icon">🔒</span>
-            <input
-              type="password"
-              id="loginPassword"
-              placeholder="Vaše heslo"
-              autocomplete="current-password"
-              required
-            />
+            <input type="password" id="loginPassword" placeholder="Vaše heslo" autocomplete="current-password" required/>
             <button type="button" class="toggle-pw" data-target="loginPassword" aria-label="Zobrazit heslo">
               <span class="eye-icon">👁</span>
             </button>
           </div>
           <span class="field-error" id="loginPasswordErr" role="alert"></span>
         </div>
-
-        <!-- Globální chyba -->
         <div class="form-error hidden" id="loginError" role="alert"></div>
-
         <button type="submit" class="btn-auth" id="loginBtn">
           <span class="btn-label">Přihlásit se</span>
           <span class="btn-spinner hidden" aria-hidden="true">↻</span>
         </button>
-
       </form>
 
       <!-- ── REGISTRACE ── -->
       <form class="auth-form" id="registerForm" novalidate autocomplete="on">
-
         <div class="form-group">
           <label for="regEmail">E-mail</label>
           <div class="input-wrap">
             <span class="input-icon">✉</span>
-            <input
-              type="email"
-              id="regEmail"
-              placeholder="vas@email.cz"
-              autocomplete="email"
-              required
-            />
+            <input type="email" id="regEmail" placeholder="vas@email.cz" autocomplete="email" required/>
           </div>
           <span class="field-error" id="regEmailErr" role="alert"></span>
         </div>
-
         <div class="form-group">
           <label for="regPassword">Heslo</label>
           <div class="input-wrap password-wrap">
             <span class="input-icon">🔒</span>
-            <input
-              type="password"
-              id="regPassword"
-              placeholder="Min. 8 znaků"
-              autocomplete="new-password"
-              required
-              minlength="8"
-            />
+            <input type="password" id="regPassword" placeholder="Min. 8 znaků" autocomplete="new-password" required minlength="8"/>
             <button type="button" class="toggle-pw" data-target="regPassword" aria-label="Zobrazit heslo">
               <span class="eye-icon">👁</span>
             </button>
@@ -134,23 +96,31 @@
           </div>
           <span class="field-error" id="regPasswordErr" role="alert"></span>
         </div>
-
         <div class="form-group">
           <label for="regPassword2">Heslo znovu</label>
           <div class="input-wrap password-wrap">
             <span class="input-icon">🔒</span>
-            <input
-              type="password"
-              id="regPassword2"
-              placeholder="Zopakujte heslo"
-              autocomplete="new-password"
-              required
-            />
+            <input type="password" id="regPassword2" placeholder="Zopakujte heslo" autocomplete="new-password" required/>
             <button type="button" class="toggle-pw" data-target="regPassword2" aria-label="Zobrazit heslo">
               <span class="eye-icon">👁</span>
             </button>
           </div>
           <span class="field-error" id="regPassword2Err" role="alert"></span>
+        </div>
+
+        <!-- Souhlas s podmínkami -->
+        <div class="form-group consent-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="consentTerms" required/>
+            <span class="checkbox-custom"></span>
+            <span>
+              Souhlasím s
+              <button type="button" class="link-btn" id="openTermsBtn">podmínkami použití</button>
+              a
+              <button type="button" class="link-btn" id="openPrivacyBtn">zásadami ochrany dat</button>
+            </span>
+          </label>
+          <span class="field-error" id="consentErr" role="alert"></span>
         </div>
 
         <div class="form-error hidden" id="registerError" role="alert"></div>
@@ -160,26 +130,155 @@
           <span class="btn-label">Vytvořit účet</span>
           <span class="btn-spinner hidden" aria-hidden="true">↻</span>
         </button>
-
       </form>
 
+      <!-- Oddělovač -->
+      <div class="auth-divider">
+        <span>nebo</span>
+      </div>
+
+      <!-- REŽIM HOSTA -->
+      <button class="btn-guest" id="guestModeBtn">
+        <span class="guest-icon">👤</span>
+        <div class="guest-text">
+          <span class="guest-title">Pokračovat jako host</span>
+          <span class="guest-sub">Bez registrace — data se neuloží</span>
+        </div>
+        <span class="guest-arrow">→</span>
+      </button>
+
       <p class="auth-footer">
-        <span>🔐</span> Data jsou bezpečně uložena a šifrována pomocí Supabase.
+        <span>🔐</span> Vaše data jsou šifrována a v bezpečí.
       </p>
 
     </div><!-- /.auth-card -->
   </main>
 
-  
-<!-- Supabase CDN -->
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- Inicializace Supabase klienta -->
-<script defer src="js/supabase.js"></script>
+  <!-- ═══════════ COOKIE BANNER ═══════════ -->
+  <div class="cookie-banner" id="cookieBanner" role="dialog" aria-labelledby="cookieBannerTitle" aria-hidden="true">
+    <div class="cookie-inner">
+      <div class="cookie-icon" aria-hidden="true">🍪</div>
+      <div class="cookie-content">
+        <h3 id="cookieBannerTitle">Používáme cookies</h3>
+        <p>
+          Pro správné fungování aplikace používáme nezbytné cookies.
+          Analytické cookies používáme pouze s vaším souhlasem.
+          <button type="button" class="link-btn" id="cookieDetailBtn">Více informací</button>
+        </p>
+      </div>
+      <div class="cookie-actions">
+        <button class="cookie-btn cookie-reject" id="cookieRejectBtn">Jen nezbytné</button>
+        <button class="cookie-btn cookie-accept" id="cookieAcceptBtn">Přijmout vše</button>
+      </div>
+    </div>
+  </div>
 
-<!-- Auth logika -->
-<script defer src="js/auth.js"></script>
 
+  <!-- ═══════════ MODAL: PODMÍNKY POUŽITÍ ═══════════ -->
+  <div class="legal-overlay hidden" id="termsOverlay" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
+    <div class="legal-modal">
+      <div class="legal-header">
+        <h2 id="termsTitle">Podmínky použití</h2>
+        <button class="legal-close" id="closeTermsBtn" aria-label="Zavřít">✕</button>
+      </div>
+      <div class="legal-body">
+        <p class="legal-date">Platné od: 1. ledna 2025</p>
+
+        <h3>1. Úvod</h3>
+        <p>Vítejte v aplikaci Planify. Tyto podmínky použití upravují přístup a používání naší webové aplikace. Používáním aplikace vyjadřujete souhlas s těmito podmínkami.</p>
+
+        <h3>2. Popis služby</h3>
+        <p>Planify je osobní produktivní aplikace umožňující správu úkolů, návyků, financí, cílů a poznámek. Aplikace je poskytována bezplatně pro osobní nekomerční použití.</p>
+
+        <h3>3. Uživatelský účet</h3>
+        <p>Pro plné využití funkcí je nutná registrace. Odpovídáte za bezpečnost přístupových údajů. Vaše data jsou ukládána prostřednictvím služby Supabase a chráněna šifrováním.</p>
+
+        <h3>4. Ochrana dat</h3>
+        <p>Vaše osobní údaje zpracováváme pouze v rozsahu nezbytném pro fungování aplikace. Podrobnosti naleznete v Zásadách ochrany osobních údajů.</p>
+
+        <h3>5. Zakázané použití</h3>
+        <p>Je zakázáno používat aplikaci k nezákonným účelům, pokoušet se o neoprávněný přístup k datům jiných uživatelů nebo narušovat provoz aplikace.</p>
+
+        <h3>6. Odpovědnost</h3>
+        <p>Aplikace je poskytována „tak jak je". Neneseme odpovědnost za případnou ztrátu dat ani za škody vzniklé v důsledku používání aplikace.</p>
+
+        <h3>7. Změny podmínek</h3>
+        <p>Vyhrazujeme si právo tyto podmínky kdykoli změnit. O podstatných změnách budete informováni prostřednictvím aplikace.</p>
+
+        <h3>8. Kontakt</h3>
+        <p>V případě dotazů nás kontaktujte přes zákaznickou podporu v aplikaci.</p>
+      </div>
+      <div class="legal-footer">
+        <button class="btn-auth" id="acceptTermsBtn" style="max-width:220px">Rozumím a souhlasím</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════ MODAL: ZÁSADY OCHRANY DAT ═══════════ -->
+  <div class="legal-overlay hidden" id="privacyOverlay" role="dialog" aria-modal="true" aria-labelledby="privacyTitle">
+    <div class="legal-modal">
+      <div class="legal-header">
+        <h2 id="privacyTitle">Zásady ochrany osobních údajů</h2>
+        <button class="legal-close" id="closePrivacyBtn" aria-label="Zavřít">✕</button>
+      </div>
+      <div class="legal-body">
+        <p class="legal-date">Platné od: 1. ledna 2025 · v souladu s GDPR</p>
+
+        <h3>1. Správce údajů</h3>
+        <p>Správcem osobních údajů je provozovatel aplikace Planify. Zpracování probíhá v souladu s nařízením GDPR (EU) 2016/679.</p>
+
+        <h3>2. Jaké údaje zpracováváme</h3>
+        <p><strong>Nezbytné pro fungování aplikace:</strong></p>
+        <ul>
+          <li>E-mailová adresa (pro přihlášení)</li>
+          <li>Heslo (ukládáno výhradně v zahashované podobě)</li>
+          <li>Data zadaná do aplikace (úkoly, poznámky, finance…)</li>
+          <li>Technické cookie pro udržení přihlášení (session)</li>
+        </ul>
+        <p><strong>Analytické (pouze se souhlasem):</strong></p>
+        <ul>
+          <li>Anonymizovaná statistika používání</li>
+        </ul>
+
+        <h3>3. Účel zpracování</h3>
+        <p>Údaje zpracováváme výhradně za účelem poskytování funkcionality aplikace. Data neprodáváme ani nesdílíme s třetími stranami.</p>
+
+        <h3>4. Zabezpečení dat</h3>
+        <p>Data jsou uložena ve službě Supabase (infrastruktura AWS v EU) a chráněna šifrováním přenosu (TLS) i uložení. Přístup k datům mají pouze vy prostřednictvím vlastního účtu.</p>
+
+        <h3>5. Vaše práva</h3>
+        <ul>
+          <li><strong>Právo na přístup</strong> — kdykoli vidíte veškerá svá data v aplikaci</li>
+          <li><strong>Právo na opravu</strong> — data můžete editovat přímo v aplikaci</li>
+          <li><strong>Právo na výmaz</strong> — smazáním účtu smažete všechna svá data</li>
+          <li><strong>Právo na přenositelnost</strong> — data lze exportovat (funkce v přípravě)</li>
+          <li><strong>Právo vznést námitku</strong> — kontaktujte nás prostřednictvím podpory</li>
+        </ul>
+
+        <h3>6. Cookies</h3>
+        <p><strong>Nezbytné cookies</strong> (vždy aktivní): session token pro přihlášení, nastavení aplikace (téma, jazyk).</p>
+        <p><strong>Analytické cookies</strong> (pouze se souhlasem): anonymizované statistiky pro zlepšení aplikace.</p>
+
+        <h3>7. Uchování dat</h3>
+        <p>Data jsou uchovávána po dobu existence vašeho účtu. Po smazání účtu jsou data nenávratně odstraněna do 30 dnů.</p>
+
+        <h3>8. Kontakt</h3>
+        <p>Dotazy ohledně ochrany dat zasílejte prostřednictvím zákaznické podpory. Máte právo podat stížnost k Úřadu pro ochranu osobních údajů (uoou.cz).</p>
+      </div>
+      <div class="legal-footer">
+        <button class="btn-auth" id="acceptPrivacyBtn" style="max-width:220px">Rozumím</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Skripty -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="js/supabase.js"></script>
+  <script defer src="js/cookie.js"></script>
+  <script defer src="js/auth.js"></script>
 
 </body>
 </html>
