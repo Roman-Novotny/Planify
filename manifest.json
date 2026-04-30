@@ -1,0 +1,26 @@
+{
+  "name": "Planify",
+  "short_name": "Planify",
+  "description": "Váš osobní produktivní dashboard",
+  "start_url": "./app.html",
+  "display": "standalone",
+  "background_color": "#0A0B12",
+  "theme_color": "#6366F1",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "img/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "cs"
+}
