@@ -230,32 +230,24 @@ function buyItem(id) {
   if (!item) return;
 
   // Získat aktuální XP
-  let xp = 0;
-  if (typeof loadXP === 'function') {
-    xp = loadXP().xp || 0;
-  } else {
-    xp = parseInt(localStorage.getItem('planify_xp_simple') || '0');
-  }
+  // Pokud existuje xp-hooks.js, buyItem je patchován tam
+  // Toto je fallback pro případ staršího načtení
 
-  if (xp < item.price) {
-    showToast(`Nemáte dost XP. Potřebujete ${item.price} XP, máte ${xp} XP.`, 'warning', 4000);
-    return;
-  }
+  const coins = typeof getCoins === 'function' ? getCoins() : 0;
 
   if (ownsItem(id) && !item.consumable) {
     showToast('Tento předmět již vlastníte.', 'info');
     return;
   }
 
-  // Odečíst XP
-  if (typeof loadXP === 'function' && typeof saveXP === 'function') {
-    const data = loadXP();
-    data.xp -= item.price;
-    saveXP(data);
-    if (typeof updateXpBar === 'function') updateXpBar();
-  } else {
-    const cur = parseInt(localStorage.getItem('planify_xp_simple') || '0');
-    localStorage.setItem('planify_xp_simple', String(cur - item.price));
+  if (coins < item.price) {
+    showToast(`Nemáte dost mincí 🪙. Potřebujete ${item.price} 🪙, máte ${coins} 🪙.`, 'warning', 4000);
+    return;
+  }
+
+  // Odečíst mince
+  if (typeof spendCoins === 'function') {
+    if (!spendCoins(item.price)) return;
   }
 
   // Přidat do vlastněných
@@ -420,10 +412,21 @@ function renderShop() {
     <!-- XP přehled -->
     <div class="shop-xp-header">
       <div class="shop-xp-balance">
-        <div class="shop-xp-icon">⭐</div>
-        <div>
-          <div class="shop-xp-amount">${currentXP.toLocaleString('cs-CZ')} XP</div>
-          <div class="shop-xp-label">Váš aktuální zůstatek</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="shop-xp-icon">🪙</div>
+            <div>
+              <div class="shop-xp-amount" style="color:#60A5FA">${(typeof getCoins==='function'?getCoins():0).toLocaleString('cs-CZ')} 🪙</div>
+              <div class="shop-xp-label">Planify Mince (na nákupy)</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="shop-xp-icon">⭐</div>
+            <div>
+              <div class="shop-xp-amount" style="font-size:16px">${currentXP.toLocaleString('cs-CZ')} XP</div>
+              <div class="shop-xp-label">XP body (levely)</div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="shop-tabs">
@@ -440,7 +443,8 @@ function renderShop() {
     <div class="shop-grid" style="max-width:100%">
       ${items.map(item => {
         const isOwned   = owned.has(item.id);
-        const canAfford = currentXP >= item.price;
+        const playerCoins = typeof getCoins === 'function' ? getCoins() : 0;
+        const canAfford = playerCoins >= item.price;
         const isActive  = _isItemActive(item);
 
         return `
@@ -455,9 +459,9 @@ function renderShop() {
           <div class="shop-item-desc">${escHtml(item.desc)}</div>
 
           ${!isOwned ? `
-            <div class="shop-item-price">
-              <span>⭐</span>
-              <span>${item.price} XP</span>
+            <div class="shop-item-price" style="background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.25);color:#60A5FA">
+              <span>🪙</span>
+              <span>${item.price}</span>
             </div>` : ''}
 
           <button class="btn-buy ${isOwned ? 'is-owned' : canAfford ? 'can-buy' : 'cant-buy'}"
@@ -467,7 +471,7 @@ function renderShop() {
               ? (isActive ? '✓ Aktivní' : '🎒 Vlastním')
               : canAfford
                 ? '🛒 Koupit'
-                : `Chybí ${item.price - currentXP} XP`}
+                : `Chybí ${item.price - (typeof getCoins==='function'?getCoins():0)} 🪙`}
           </button>
 
           ${isOwned && !isActive && item.category !== 'powerup' ? `
