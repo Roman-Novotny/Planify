@@ -161,20 +161,28 @@ function sendBrowserNotification(title, body, options = {}) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   PRAVIDELNÉ KONTROLY (každých 15 min)
+   PRAVIDELNÉ KONTROLY
 ═══════════════════════════════════════════════════════ */
+let _reminderMinuteInterval = null;
+
 function _startNotificationChecks() {
   checkNotifications();
+  // Obecné kontroly každých 15 minut
   if (_notifCheckInterval) clearInterval(_notifCheckInterval);
   _notifCheckInterval = setInterval(checkNotifications, 15 * 60 * 1000);
+  // Task reminder kontrola každou minutu (přesné časy)
+  if (_reminderMinuteInterval) clearInterval(_reminderMinuteInterval);
+  _reminderMinuteInterval = setInterval(_checkTaskReminders, 60_000);
 }
 
 function checkNotifications() {
   if (_notifPermission !== 'granted') return;
   _checkTaskNotifications();
   _checkHabitNotifications();
+  _checkTaskReminders();
   _updateNotifDot();
   syncRemindersToSW();
+  syncTaskRemindersToSW();
 }
 
 /* ─────────────────────────────────────────────────────
@@ -236,6 +244,59 @@ function _checkHabitNotifications() {
       { tag: key, data: { section: 'habits' } }
     );
   }
+}
+
+/* ─────────────────────────────────────────────────────
+   KONTROLA TASK PŘIPOMÍNEK (každou minutu)
+───────────────────────────────────────────────────── */
+function _checkTaskReminders() {
+  if (_notifPermission !== 'granted') return;
+  const reminders = _loadTaskRemindersLocal();
+  if (!Object.keys(reminders).length) return;
+
+  const now     = new Date();
+  const curTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const todayStr = today();
+
+  Object.entries(reminders).forEach(([taskId, time]) => {
+    if (time !== curTime) return;
+    const task = window.APP_DATA?.tasks?.find(t => t.id === taskId && !t.done);
+    if (!task) return;
+    const key = `task_rem_${taskId}_${todayStr}_${time}`;
+    if (_shownNotifications.has(key)) return;
+    _shownNotifications.add(key);
+    sendBrowserNotification(
+      `⏰ ${task.name}`,
+      task.due_date ? `Termín: ${formatDate(task.due_date)}` : 'Připomínka úkolu',
+      { tag: key, data: { section: 'tasks' } }
+    );
+  });
+}
+
+function _loadTaskRemindersLocal() {
+  try { return JSON.parse(localStorage.getItem('planify_task_reminders') || '{}'); } catch { return {}; }
+}
+
+/* ─────────────────────────────────────────────────────
+   SYNC TASK PŘIPOMÍNEK DO SERVICE WORKERU (pozadí)
+───────────────────────────────────────────────────── */
+function syncTaskRemindersToSW() {
+  if (!_swRegistration || !navigator.serviceWorker.controller) return;
+  const reminders = _loadTaskRemindersLocal();
+  const D = window.APP_DATA;
+  const reminderData = [];
+
+  Object.entries(reminders).forEach(([taskId, time]) => {
+    const task = D?.tasks?.find(t => t.id === taskId && !t.done);
+    if (!task || !time) return;
+    reminderData.push({ taskId, taskName: task.name, time });
+  });
+
+  navigator.serviceWorker.controller.postMessage({
+    type:      'SYNC_TASK_REMINDERS',
+    reminders: reminderData,
+    today:     today(),
+  });
 }
 
 /* ═══════════════════════════════════════════════════════

@@ -119,6 +119,9 @@ function renderTasks() {
                   title="${overdue ? 'Termín prošel' : 'Termín'}">
               ${overdue ? '⚠ ' : ''}${formatDateShort(t.due_date)}
             </span>` : ''}
+          ${_loadTaskReminder(t.id) ? `
+            <span style="color:var(--accent-light);font-size:11px"
+                  title="Připomínka v ${_loadTaskReminder(t.id)}">⏰ ${_loadTaskReminder(t.id)}</span>` : ''}
           ${t.description ? `
             <span style="color:var(--text-muted);font-size:11px"
                   title="${escHtml(t.description)}">📝</span>` : ''}
@@ -227,6 +230,8 @@ async function deleteTask(id) {
     return;
   }
 
+  _removeTaskReminder(id);
+  if (typeof syncTaskRemindersToSW === 'function') setTimeout(syncTaskRemindersToSW, 400);
   showToast('Úkol smazán', 'info');
 }
 
@@ -236,11 +241,12 @@ async function deleteTask(id) {
 document.getElementById('addTaskBtn')?.addEventListener('click', () => {
   taskEditId = null;
   document.getElementById('taskModalTitle').textContent = 'Nový úkol';
-  document.getElementById('taskName').value      = '';
-  document.getElementById('taskCategory').value  = 'work';
-  document.getElementById('taskPriority').value  = 'medium';
-  document.getElementById('taskDue').value       = today();
-  document.getElementById('taskDesc').value      = '';
+  document.getElementById('taskName').value         = '';
+  document.getElementById('taskCategory').value     = 'work';
+  document.getElementById('taskPriority').value     = 'medium';
+  document.getElementById('taskDue').value          = today();
+  document.getElementById('taskDesc').value         = '';
+  document.getElementById('taskReminderTime').value = '';
   _clearTaskErrors();
   openModal('taskModal');
 });
@@ -254,11 +260,12 @@ function openEditTask(id) {
 
   taskEditId = id;
   document.getElementById('taskModalTitle').textContent  = 'Upravit úkol';
-  document.getElementById('taskName').value      = task.name || '';
-  document.getElementById('taskCategory').value  = task.category  || 'work';
-  document.getElementById('taskPriority').value  = task.priority  || 'medium';
-  document.getElementById('taskDue').value       = task.due_date  || '';
-  document.getElementById('taskDesc').value      = task.description || '';
+  document.getElementById('taskName').value         = task.name || '';
+  document.getElementById('taskCategory').value     = task.category   || 'work';
+  document.getElementById('taskPriority').value     = task.priority   || 'medium';
+  document.getElementById('taskDue').value          = task.due_date   || '';
+  document.getElementById('taskDesc').value         = task.description || '';
+  document.getElementById('taskReminderTime').value = _loadTaskReminder(id);
   _clearTaskErrors();
   openModal('taskModal');
 }
@@ -298,7 +305,10 @@ async function saveTask() {
   saveBtn.disabled    = true;
   saveBtn.textContent = 'Ukládám…';
 
+  const reminderTime = document.getElementById('taskReminderTime').value.trim();
+
   try {
+    let savedId;
     if (taskEditId) {
       // ── Aktualizace ─────────────────────────────────
       const { data, error } = await window.supabaseClient
@@ -312,6 +322,7 @@ async function saveTask() {
 
       const idx = window.APP_DATA.tasks.findIndex(t => t.id === taskEditId);
       if (idx !== -1) window.APP_DATA.tasks[idx] = data;
+      savedId = taskEditId;
 
       showToast('Úkol upraven', 'success');
 
@@ -329,13 +340,19 @@ async function saveTask() {
       if (error) throw error;
 
       window.APP_DATA.tasks.unshift(data);
+      savedId = data.id;
+
       showToast('Úkol přidán', 'success');
     }
+
+    // Uložit reminder time do localStorage
+    if (savedId) _saveTaskReminder(savedId, reminderTime);
 
     closeModal('taskModal');
     renderTasks();
     renderDashboard();
     if (typeof updatePomoTaskSelect === 'function') updatePomoTaskSelect();
+    if (typeof syncTaskRemindersToSW === 'function') setTimeout(syncTaskRemindersToSW, 400);
 
   } catch (err) {
     console.error('[Planify] saveTask chyba:', err);
@@ -344,6 +361,33 @@ async function saveTask() {
     saveBtn.disabled    = false;
     saveBtn.textContent = 'Uložit úkol';
   }
+}
+
+/* ═══════════════════════════════════════════════════════
+   PŘIPOMÍNKY ÚKOLŮ — localStorage helpers
+═══════════════════════════════════════════════════════ */
+const _TASK_REMINDERS_KEY = 'planify_task_reminders';
+
+function _loadAllTaskReminders() {
+  try { return JSON.parse(localStorage.getItem(_TASK_REMINDERS_KEY) || '{}'); } catch { return {}; }
+}
+
+function _loadTaskReminder(taskId) {
+  return _loadAllTaskReminders()[taskId] || '';
+}
+
+function _saveTaskReminder(taskId, time) {
+  const all = _loadAllTaskReminders();
+  if (time) {
+    all[taskId] = time;
+  } else {
+    delete all[taskId];
+  }
+  try { localStorage.setItem(_TASK_REMINDERS_KEY, JSON.stringify(all)); } catch {}
+}
+
+function _removeTaskReminder(taskId) {
+  _saveTaskReminder(taskId, '');
 }
 
 /* ═══════════════════════════════════════════════════════

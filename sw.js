@@ -85,9 +85,12 @@ self.addEventListener('fetch', event => {
 ───────────────────────────────────────────────────── */
 
 // Data od aplikace
-let _reminders     = [];  // [{ habitId, habitName, habitIcon, time }]
-let _checkedToday  = [];  // habitId[] — splněné dnes
-let _reminderTimer = null;
+let _reminders      = [];  // [{ habitId, habitName, habitIcon, time }]
+let _taskReminders  = [];  // [{ taskId, taskName, time }]
+let _checkedToday   = [];  // habitId[] — splněné dnes
+let _notifiedToday  = [];  // taskId+time — oznámené dnes
+let _reminderTimer  = null;
+let _swToday        = '';
 
 self.addEventListener('message', event => {
   if (!event.data) return;
@@ -95,10 +98,15 @@ self.addEventListener('message', event => {
   switch (event.data.type) {
 
     case 'SYNC_REMINDERS':
-      // Aplikace nám poslala aktuální připomínky
       _reminders    = event.data.reminders || [];
       _checkedToday = event.data.checkedToday || [];
-      console.log('[SW] Připomínky synchronizovány:', _reminders.length);
+      _swToday      = event.data.today || '';
+      _scheduleReminderCheck();
+      break;
+
+    case 'SYNC_TASK_REMINDERS':
+      _taskReminders = event.data.reminders || [];
+      if (event.data.today) _swToday = event.data.today;
       _scheduleReminderCheck();
       break;
   }
@@ -119,32 +127,48 @@ function _scheduleReminderCheck() {
 }
 
 function _checkReminders() {
-  if (!_reminders.length) return;
-
   const now     = new Date();
   const curTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  const today   = now.toISOString().slice(0, 10);
+  const todayStr = now.toISOString().slice(0, 10);
 
+  // ── Návyky ──────────────────────────────────────────
   _reminders.forEach(reminder => {
     if (reminder.time !== curTime) return;
     if (_checkedToday.includes(reminder.habitId)) return;
 
-    // Odeslat notifikaci
     self.registration.showNotification(
       `${reminder.habitIcon} ${reminder.habitName}`,
       {
         body:    'Připomínka: nezapomeňte na dnešní návyk!',
         icon:    './img/icon.svg',
         badge:   './img/icon.svg',
-        tag:     `habit-reminder-${reminder.habitId}-${today}`,
-        silent:  false,
+        tag:     `habit-reminder-${reminder.habitId}-${todayStr}`,
         data:    { section: 'habits', habitId: reminder.habitId },
         actions: [
           { action: 'open',    title: '✓ Označit splněno' },
           { action: 'dismiss', title: 'Zavřít' },
         ],
       }
-    ).catch(err => console.warn('[SW] Notifikace selhala:', err));
+    ).catch(() => {});
+  });
+
+  // ── Task připomínky ──────────────────────────────────
+  _taskReminders.forEach(reminder => {
+    if (reminder.time !== curTime) return;
+    const key = `${reminder.taskId}_${todayStr}_${curTime}`;
+    if (_notifiedToday.includes(key)) return;
+    _notifiedToday.push(key);
+
+    self.registration.showNotification(
+      `⏰ ${reminder.taskName}`,
+      {
+        body:  'Připomínka úkolu',
+        icon:  './img/icon.svg',
+        badge: './img/icon.svg',
+        tag:   `task-reminder-${reminder.taskId}-${todayStr}`,
+        data:  { section: 'tasks' },
+      }
+    ).catch(() => {});
   });
 }
 
