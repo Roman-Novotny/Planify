@@ -355,6 +355,26 @@ function renderSettings() {
         </div>
       </div>`}
 
+      <!-- Instalace aplikace -->
+      ${window._pwaInstallPrompt ? `
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <div class="settings-card-icon">📱</div>
+          <div class="settings-card-title">Nainstalovat aplikaci</div>
+        </div>
+        <div class="settings-rows">
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Přidat na plochu</div>
+              <div class="settings-row-desc">Používejte Planify jako nativní aplikaci — bez prohlížeče</div>
+            </div>
+            <button class="btn btn-primary" id="settingsInstallBtn" style="font-size:12px;padding:7px 14px">
+              📲 Instalovat
+            </button>
+          </div>
+        </div>
+      </div>` : ''}
+
     </div>
   `;
 
@@ -485,6 +505,11 @@ function renderSettings() {
   section.querySelector('#settingsRegisterBtn')?.addEventListener('click', () => {
     if (typeof exitGuestMode === 'function') exitGuestMode();
     window.location.href = 'index.html';
+  });
+
+  // Instalace PWA
+  section.querySelector('#settingsInstallBtn')?.addEventListener('click', () => {
+    if (typeof window._triggerPwaInstall === 'function') window._triggerPwaInstall();
   });
 }
 

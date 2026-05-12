@@ -78,13 +78,36 @@ function _savePlayer(p) {
   _syncPlayerToSupabase(p);
 }
 
+/* ── Shop data helpers ── */
+function _loadShopData() {
+  return {
+    owned:  JSON.parse(localStorage.getItem('planify_shop_owned') || '[]'),
+    avatar: localStorage.getItem('planify_active_avatar') || '',
+    title:  localStorage.getItem('planify_active_title')  || '',
+    theme:  localStorage.getItem('planify_active_theme')  || '',
+  };
+}
+
+function _restoreShopData(shopData) {
+  if (!shopData) return;
+  // Sloučit vlastněné předměty (remote ∪ local)
+  const remoteOwned = new Set(shopData.owned || []);
+  const localOwned  = new Set(JSON.parse(localStorage.getItem('planify_shop_owned') || '[]'));
+  remoteOwned.forEach(id => localOwned.add(id));
+  try { localStorage.setItem('planify_shop_owned', JSON.stringify([...localOwned])); } catch {}
+  // Aktivní výběry — remote přepíše local (nejnovější přihlášení vítězí)
+  if (shopData.avatar) localStorage.setItem('planify_active_avatar', shopData.avatar);
+  if (shopData.title)  localStorage.setItem('planify_active_title',  shopData.title);
+  if (shopData.theme)  localStorage.setItem('planify_active_theme',  shopData.theme);
+}
+
 async function _syncPlayerToSupabase(player) {
   const client = window.supabaseClient;
   const user   = typeof currentUser !== 'undefined' ? currentUser : null;
   if (!client || !user) return;
   try {
     await client.auth.updateUser({
-      data: { planify_player: player }
+      data: { planify_player: player, planify_shop: _loadShopData() }
     });
   } catch {}
 }
@@ -95,31 +118,55 @@ async function _loadPlayerFromSupabase() {
   try {
     const { data: { user } } = await client.auth.getUser();
     if (!user) return null;
-    return user.user_metadata?.planify_player || null;
+    return {
+      player: user.user_metadata?.planify_player || null,
+      shop:   user.user_metadata?.planify_shop   || null,
+    };
   } catch { return null; }
 }
 
-// Synchronizovat ze Supabase při startu (vzít větší XP)
+// Synchronizovat ze Supabase při startu (vzít větší XP + obnovit shop)
 async function _initPlayerSync() {
   const remote = await _loadPlayerFromSupabase();
-  if (!remote) return;
+  if (!remote || !remote.player) return;
 
   const local = _loadPlayer();
 
   // Vzít maximum (bezpečné — nikdy nesnížit XP/coins)
   const merged = {
-    xp:        Math.max(local.xp    || 0, remote.xp    || 0),
-    coins:     Math.max(local.coins || 0, remote.coins || 0),
-    lastLogin: remote.lastLogin || local.lastLogin || '',
+    xp:        Math.max(local.xp    || 0, remote.player.xp    || 0),
+    coins:     Math.max(local.coins || 0, remote.player.coins || 0),
+    lastLogin: remote.player.lastLogin || local.lastLogin || '',
   };
 
   // Uložit lokálně (bez zpětného syncu aby nevznikla smyčka)
   try { localStorage.setItem(_DATA_KEY, JSON.stringify(merged)); } catch {}
 
+  // Obnovit shop data (avatary, motivy, tituly, zakoupené předměty)
+  if (remote.shop) _restoreShopData(remote.shop);
+
   // Aktualizovat UI
   window.updateXpBar();
   _updateCoinBar();
+
+  // Znovu aplikovat efekty obchodu (avatar, titul, motiv)
+  setTimeout(() => {
+    if (typeof initShopEffects === 'function') initShopEffects();
+  }, 200);
 }
+
+// Veřejná funkce pro explicitní sync shop dat (volat po nákupu/aktivaci)
+window._syncShopNow = async function() {
+  const client = window.supabaseClient;
+  const user   = typeof currentUser !== 'undefined' ? currentUser : null;
+  if (!client || !user) return;
+  try {
+    const p = _loadPlayer();
+    await client.auth.updateUser({
+      data: { planify_player: p, planify_shop: _loadShopData() }
+    });
+  } catch {}
+};
 
 /* ══════════════════════════════════════════════════════
    ANTI-FARMING
@@ -603,6 +650,9 @@ function _patchShopBuyItem() {
 
     if (typeof _autoActivate === 'function') _autoActivate(item);
     if (typeof renderShop    === 'function') renderShop();
+
+    // Synchronizovat shop data do Supabase
+    setTimeout(() => window._syncShopNow?.(), 600);
   };
 }
 

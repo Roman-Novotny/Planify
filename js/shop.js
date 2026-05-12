@@ -283,6 +283,8 @@ function _autoActivate(item) {
       if (item.id === 'powerup_xp2') _activateDoubleXP();
       break;
   }
+  // Synchronizovat změnu na server
+  setTimeout(() => window._syncShopNow?.(), 400);
 }
 
 /* ─────────────────────────────────────────────────────
@@ -533,21 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
     SECTION_NAMES['settings'] = 'Nastavení';
   }
 
-  // 2. Patch navigate() pokud nezvládá shop/settings
-  if (typeof navigate === 'function') {
-    const _origNavigate = navigate;
-    window.navigate = function(section) {
-      _origNavigate(section);
-      // Doplnit render pro nové sekce
-      if (section === 'shop'     && typeof renderShop     === 'function') renderShop();
-      if (section === 'settings' && typeof renderSettings === 'function') renderSettings();
-      // Opravit topbar title pokud zobrazuje surový klíč
-      const titleEl = document.getElementById('topbarTitle');
-      if (titleEl && (titleEl.textContent === 'shop' || titleEl.textContent === 'settings')) {
-        titleEl.textContent = section === 'shop' ? 'XP Obchod' : 'Nastavení';
-      }
-    };
-  }
+  // navigate() v app.js již podporuje shop a settings — patch odstraněn
 
   // 3. Aplikovat efekty obchodu (avatary, motivy)
   if (typeof initShopEffects === 'function') initShopEffects();

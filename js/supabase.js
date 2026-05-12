@@ -550,3 +550,14 @@ function xpGoalCompleted() {
 function xpTransactionAdded() {
   addXP(XP_REWARDS.TRANSACTION_ADD, 'Transakce přidána');
 }
+
+/* ═══════════════════════════════════════════════════════
+   GUEST MODE HELPERS
+═══════════════════════════════════════════════════════ */
+function isGuestMode() {
+  return localStorage.getItem('planify_guest_mode') === '1';
+}
+
+function exitGuestMode() {
+  localStorage.removeItem('planify_guest_mode');
+}

@@ -19,18 +19,14 @@
     SECTION_NAMES['settings'] = 'Nastavení';
   }
 
-  /* ── 2. Patch navigate() – přidat shop + settings ── */
+  /* ── 2. Patch navigate() – oprava topbar title ── */
   function _patchNavigate() {
     if (typeof navigate !== 'function') return;
     const _orig = window.navigate || navigate;
 
     window.navigate = function (section) {
       _orig(section);
-
-      if (section === 'shop'     && typeof renderShop     === 'function') renderShop();
-      if (section === 'settings' && typeof renderSettings === 'function') renderSettings();
-
-      // Opravit topbar title pokud zobrazuje surový klíč
+      // Opravit topbar title pokud by zobrazoval surový klíč
       const titleEl = document.getElementById('topbarTitle');
       if (titleEl) {
         const names = { shop: 'XP Obchod', settings: 'Nastavení' };

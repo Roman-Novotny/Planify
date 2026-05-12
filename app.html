@@ -10,12 +10,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Planify"/>
   <link rel="manifest" href="manifest.json"/>
-  <link rel="icon" type="image/png" href="img/logo.png"/>
+  <link rel="icon" type="image/svg+xml" href="img/icon.svg"/>
+  <link rel="apple-touch-icon" href="img/icon.svg"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/app.css"/>
   <link rel="stylesheet" href="css/tour.css"/>
   <link rel="stylesheet" href="css/app-patch.css"/>
+  <link rel="stylesheet" href="css/cookie.css"/>
 </head>
 <body>
 
@@ -130,6 +132,10 @@
       <button class="footer-btn help-btn" id="tourStartBtn" aria-label="Spustit průvodce aplikací">
         <span>?</span>
         <span>Nápověda</span>
+      </button>
+      <button class="footer-btn" id="pwaInstallBtn" onclick="window._triggerPwaInstall()" aria-label="Nainstalovat aplikaci" style="display:none">
+        <span>⬇</span>
+        <span>Nainstalovat</span>
       </button>
     </div>
   </div>
@@ -928,11 +934,41 @@
 <script src="js/calendar.js"></script>
 <script src="js/pomodoro.js"></script>
 <script src="js/tour.js"></script>
-<script src="js/app-init-patch.js"></script>
+<script src="js/cookie.js"></script>
 <script src="js/app.js"></script>
+<script src="js/app-init-patch.js"></script>
 <script src="js/shop.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/xp-hooks.js"></script>
 
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+
+  // PWA install prompt
+  window._pwaInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    window._pwaInstallPrompt = e;
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.style.display = 'flex';
+    // Refresh settings if open
+    if (typeof renderSettings === 'function') {
+      const s = document.getElementById('section-settings');
+      if (s && s.classList.contains('active')) renderSettings();
+    }
+  });
+  window.addEventListener('appinstalled', () => {
+    window._pwaInstallPrompt = null;
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.style.display = 'none';
+  });
+  window._triggerPwaInstall = function() {
+    if (window._pwaInstallPrompt) window._pwaInstallPrompt.prompt();
+  };
+</script>
 </body>
 </html>
