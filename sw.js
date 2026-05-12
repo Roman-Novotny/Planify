@@ -20,7 +20,7 @@ const CACHE_FILES = [
   './css/auth.css',
   './css/tour.css',
   './css/cookie.css',
-  './img/icon.svg',
+  './img/icon.png',
   './img/logo-text-tmav.png',
 ];
 
@@ -140,8 +140,8 @@ function _checkReminders() {
       `${reminder.habitIcon} ${reminder.habitName}`,
       {
         body:    'Připomínka: nezapomeňte na dnešní návyk!',
-        icon:    './img/icon.svg',
-        badge:   './img/icon.svg',
+        icon:    './img/icon.png',
+        badge:   './img/icon.png',
         tag:     `habit-reminder-${reminder.habitId}-${todayStr}`,
         data:    { section: 'habits', habitId: reminder.habitId },
         actions: [
@@ -163,8 +163,8 @@ function _checkReminders() {
       `⏰ ${reminder.taskName}`,
       {
         body:  'Připomínka úkolu',
-        icon:  './img/icon.svg',
-        badge: './img/icon.svg',
+        icon:  './img/icon.png',
+        badge: './img/icon.png',
         tag:   `task-reminder-${reminder.taskId}-${todayStr}`,
         data:  { section: 'tasks' },
       }

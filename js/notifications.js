@@ -147,8 +147,8 @@ function sendBrowserNotification(title, body, options = {}) {
     if (_swRegistration?.active) {
       _swRegistration.showNotification(title, {
         body,
-        icon:  'img/logo.png',
-        badge: 'img/logo.png',
+        icon:  'img/icon.png',
+        badge: 'img/icon.png',
         tag:   options.tag || `planify-${Date.now()}`,
         data:  options.data || {},
         ...options,
@@ -156,7 +156,7 @@ function sendBrowserNotification(title, body, options = {}) {
     } else {
       // Fallback na klasické notifikace
       const notif = new Notification(title, {
-        body, icon: 'img/logo.png',
+        body, icon: 'img/icon.png',
         tag: options.tag || `planify-${Date.now()}`,
         ...options,
       });
