@@ -28,6 +28,14 @@ function initNotifications() {
   }
 
   _updateNotifDot();
+
+  // Záložní kontrola při návratu do aplikace (mobil — SW může být ukončen)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && _notifPermission === 'granted') {
+      _checkTaskReminders(5); // grace period 5 minut
+      syncTaskRemindersToSW();
+    }
+  });
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -249,17 +257,22 @@ function _checkHabitNotifications() {
 /* ─────────────────────────────────────────────────────
    KONTROLA TASK PŘIPOMÍNEK (každou minutu)
 ───────────────────────────────────────────────────── */
-function _checkTaskReminders() {
+function _checkTaskReminders(graceMinutes = 0) {
   if (_notifPermission !== 'granted') return;
   const reminders = _loadTaskRemindersLocal();
   if (!Object.keys(reminders).length) return;
 
-  const now     = new Date();
-  const curTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const now      = new Date();
   const todayStr = today();
 
   Object.entries(reminders).forEach(([taskId, time]) => {
-    if (time !== curTime) return;
+    if (!time) return;
+    const [h, m]      = time.split(':').map(Number);
+    const reminderMs  = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m).getTime();
+    const diffMin     = (now.getTime() - reminderMs) / 60000;
+    // Spustí se pokud je čas přesně teď nebo jsme ve grace period (přišli pozdě)
+    if (diffMin < 0 || diffMin > graceMinutes) return;
+
     const task = window.APP_DATA?.tasks?.find(t => t.id === taskId && !t.done);
     if (!task) return;
     const key = `task_rem_${taskId}_${todayStr}_${time}`;

@@ -570,15 +570,14 @@
           </select>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="taskDue">Termín</label>
-          <input type="date" id="taskDue"/>
-        </div>
-        <div class="form-group">
-          <label for="taskReminderTime">🔔 Připomenutí v</label>
-          <input type="time" id="taskReminderTime" placeholder="—"/>
-        </div>
+      <div class="form-group">
+        <label for="taskDue">Termín</label>
+        <input type="date" id="taskDue"/>
+      </div>
+      <div class="form-group">
+        <label for="taskReminderTime">🔔 Připomínka — čas notifikace</label>
+        <input type="time" id="taskReminderTime"/>
+        <span class="field-hint" style="font-size:11px;color:var(--text-muted)">Nechte prázdné pokud nechcete připomínku</span>
       </div>
       <div class="form-group">
         <label for="taskDesc">Popis</label>
