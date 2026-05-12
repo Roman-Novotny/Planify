@@ -8,8 +8,8 @@
    - Cache pro offline fungování (základní)
 ═══════════════════════════════════════════════════════ */
 
-const SW_VERSION    = 'planify-sw-v1';
-const CACHE_NAME    = 'planify-cache-v1';
+const SW_VERSION    = 'planify-sw-v2';
+const CACHE_NAME    = 'planify-cache-v2';
 
 // Soubory pro offline cache
 const CACHE_FILES = [

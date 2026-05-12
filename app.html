@@ -4,6 +4,24 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Planify — Váš osobní dashboard</title>
+
+  <!-- Bezpečnostní hlavičky -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://cdn.jsdelivr.net;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com;
+    connect-src 'self' https://jjmuolhqtfddjsrhwlnn.supabase.co wss://jjmuolhqtfddjsrhwlnn.supabase.co;
+    img-src 'self' data: blob:;
+    worker-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+  "/>
+  <meta name="referrer" content="strict-origin-when-cross-origin"/>
+  <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()"/>
+
   <meta name="theme-color" content="#6366F1"/>
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -941,34 +959,6 @@
 <script src="js/settings.js"></script>
 <script src="js/xp-hooks.js"></script>
 
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
-    });
-  }
-
-  // PWA install prompt
-  window._pwaInstallPrompt = null;
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    window._pwaInstallPrompt = e;
-    const btn = document.getElementById('pwaInstallBtn');
-    if (btn) btn.style.display = 'flex';
-    // Refresh settings if open
-    if (typeof renderSettings === 'function') {
-      const s = document.getElementById('section-settings');
-      if (s && s.classList.contains('active')) renderSettings();
-    }
-  });
-  window.addEventListener('appinstalled', () => {
-    window._pwaInstallPrompt = null;
-    const btn = document.getElementById('pwaInstallBtn');
-    if (btn) btn.style.display = 'none';
-  });
-  window._triggerPwaInstall = function() {
-    if (window._pwaInstallPrompt) window._pwaInstallPrompt.prompt();
-  };
-</script>
+<script src="js/pwa-init.js"></script>
 </body>
 </html>

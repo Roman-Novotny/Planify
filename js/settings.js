@@ -70,17 +70,30 @@ function _syncThemeButton(theme) {
 function renderSettings() {
   const section = document.getElementById('section-settings');
   if (!section) return;
+  try {
+    _doRenderSettings(section);
+  } catch (err) {
+    console.error('[Planify] renderSettings:', err);
+    section.innerHTML = `
+      <div class="section-header"><div><h2>Nastavení</h2></div></div>
+      <div style="margin-top:16px;padding:20px;background:var(--bg-surface);border:1px solid #EF4444;border-radius:12px;color:#EF4444">
+        <strong>⚠ Chyba při načítání nastavení</strong>
+        <div style="margin-top:6px;font-size:12px;color:var(--text-muted)">${String(err).replace(/</g,'&lt;')}</div>
+      </div>`;
+  }
+}
 
+function _doRenderSettings(section) {
   const settings = loadSettings();
 
   // Statistiky
-  const D             = window.APP_DATA;
-  const tasksTotal    = D.tasks.length;
-  const tasksDone     = D.tasks.filter(t => t.done).length;
-  const habitsTotal   = D.habits.length;
-  const notesTotal    = D.notes.length;
-  const goalsTotal    = D.goals.length;
-  const txTotal       = D.transactions.length;
+  const D             = window.APP_DATA || { tasks:[], habits:[], notes:[], goals:[], transactions:[] };
+  const tasksTotal    = (D.tasks  || []).length;
+  const tasksDone     = (D.tasks  || []).filter(t => t.done).length;
+  const habitsTotal   = (D.habits || []).length;
+  const notesTotal    = (D.notes  || []).length;
+  const goalsTotal    = (D.goals  || []).length;
+  const txTotal       = (D.transactions || []).length;
 
   let xpTotal = 0;
   let level   = 1;

@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Planify — Váš osobní dashboard</title>
 
+  <!-- Bezpečnostní hlavičky -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://cdn.jsdelivr.net;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com;
+    connect-src 'self' https://jjmuolhqtfddjsrhwlnn.supabase.co wss://jjmuolhqtfddjsrhwlnn.supabase.co;
+    img-src 'self' data: blob:;
+    worker-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+  "/>
+  <meta name="referrer" content="strict-origin-when-cross-origin"/>
+  <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()"/>
+
   <link rel="manifest" href="manifest.json"/>
   <link rel="icon" type="image/svg+xml" href="img/icon.svg"/>
   <link rel="icon" type="image/png" href="img/logo-text-tmav.png"/>
