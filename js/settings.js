@@ -88,7 +88,8 @@ function renderSettings() {
     const xpData = loadXP();
     xpTotal = xpData.xp || 0;
     if (typeof getLevelInfo === 'function') {
-      level = getLevelInfo(xpTotal).current.level;
+      const _lvlInfo = getLevelInfo(xpTotal);
+      level = _lvlInfo.current?.level ?? _lvlInfo.level ?? 1;
     }
   } else {
     xpTotal = parseInt(localStorage.getItem('planify_xp_simple') || '0');
