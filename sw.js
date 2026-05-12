@@ -8,8 +8,8 @@
    - Cache pro offline fungování (základní)
 ═══════════════════════════════════════════════════════ */
 
-const SW_VERSION    = 'planify-sw-v2';
-const CACHE_NAME    = 'planify-cache-v2';
+const SW_VERSION    = 'planify-sw-v3';
+const CACHE_NAME    = 'planify-cache-v3';
 
 // Soubory pro offline cache
 const CACHE_FILES = [
@@ -20,7 +20,8 @@ const CACHE_FILES = [
   './css/auth.css',
   './css/tour.css',
   './css/cookie.css',
-  './img/icon.png',
+  './img/favicon.svg',
+  './img/icon-192.png',
   './img/logo-text-tmav.png',
 ];
 
