@@ -316,11 +316,32 @@ function _doRenderSettings(section) {
           <div class="settings-row">
             <div class="settings-row-info">
               <div class="settings-row-label">Export dat (JSON)</div>
-              <div class="settings-row-desc">Stáhnout zálohu všech vašich dat</div>
+              <div class="settings-row-desc">Stáhnout zálohu úkolů, návyků, poznámek, cílů a financí</div>
             </div>
             <button class="btn btn-ghost" id="exportDataBtn" style="font-size:12px;padding:7px 14px">
               ⬇ Exportovat
             </button>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Export poznámek (Markdown)</div>
+              <div class="settings-row-desc">Stáhnout všechny poznámky jako .md soubor</div>
+            </div>
+            <button class="btn btn-ghost" id="exportNotesBtn" style="font-size:12px;padding:7px 14px">
+              📝 Exportovat
+            </button>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Import dat (JSON)</div>
+              <div class="settings-row-desc">Obnovit zálohu — sloučí s existujícími daty</div>
+            </div>
+            <label class="btn btn-ghost" style="font-size:12px;padding:7px 14px;cursor:pointer">
+              ⬆ Importovat
+              <input type="file" id="importDataInput" accept=".json" style="display:none"/>
+            </label>
           </div>
 
           <div class="settings-row">
@@ -474,26 +495,61 @@ function _doRenderSettings(section) {
     const s = loadSettings(); s.notifHabitsEvening = this.checked; saveSettings(s);
   });
 
-  // Export dat
+  // Export dat (JSON)
   section.querySelector('#exportDataBtn')?.addEventListener('click', () => {
-    const D = window.APP_DATA;
+    const D = window.APP_DATA || {};
     const exportData = {
-      exported_at: new Date().toISOString(),
-      tasks:       D.tasks,
-      habits:      D.habits,
-      goals:       D.goals,
-      notes:       D.notes,
-      events:      D.events,
-      transactions: D.transactions,
+      exported_at:  new Date().toISOString(),
+      tasks:        D.tasks        || [],
+      habits:       D.habits       || [],
+      goals:        D.goals        || [],
+      notes:        D.notes        || [],
+      events:       D.events       || [],
+      transactions: D.transactions || [],
     };
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = `planify-export-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    _downloadFile(JSON.stringify(exportData, null, 2), `planify-export-${new Date().toISOString().slice(0,10)}.json`, 'application/json');
     showToast('Data exportována ✓', 'success');
+  });
+
+  // Export poznámek (Markdown)
+  section.querySelector('#exportNotesBtn')?.addEventListener('click', () => {
+    const notes = (window.APP_DATA?.notes || []);
+    if (!notes.length) { showToast('Žádné poznámky k exportu', 'info'); return; }
+    const md = notes.map(n => {
+      const title   = n.title || 'Bez názvu';
+      const content = n.content || '';
+      const date    = n.created_at ? n.created_at.slice(0,10) : '';
+      return `# ${title}\n${date ? `_${date}_\n\n` : '\n'}${content}`;
+    }).join('\n\n---\n\n');
+    _downloadFile(md, `planify-poznamky-${new Date().toISOString().slice(0,10)}.md`, 'text/markdown');
+    showToast(`Exportováno ${notes.length} poznámek ✓`, 'success');
+  });
+
+  // Import dat (JSON)
+  section.querySelector('#importDataInput')?.addEventListener('change', function() {
+    const file = this.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (typeof data !== 'object' || !data) throw new Error('Neplatný formát');
+        const D = window.APP_DATA;
+        const merge = (key) => {
+          if (!Array.isArray(data[key])) return;
+          const existing = new Set((D[key] || []).map(x => x.id));
+          const fresh = data[key].filter(x => x.id && !existing.has(x.id));
+          D[key] = [...(D[key] || []), ...fresh];
+        };
+        ['tasks','habits','goals','notes','events','transactions'].forEach(merge);
+        if (typeof renderAll === 'function') renderAll();
+        showToast(`Import dokončen ✓`, 'success', 4000);
+      } catch (err) {
+        showToast('Chyba při importu: ' + err.message, 'error');
+      }
+      this.value = '';
+    };
+    reader.readAsText(file);
   });
 
   // Reset XP
@@ -525,6 +581,17 @@ function _doRenderSettings(section) {
   section.querySelector('#settingsInstallBtn')?.addEventListener('click', () => {
     if (typeof window._triggerPwaInstall === 'function') window._triggerPwaInstall();
   });
+}
+
+/* ─────────────────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────────────────── */
+function _downloadFile(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 /* ─────────────────────────────────────────────────────
