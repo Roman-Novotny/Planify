@@ -159,13 +159,18 @@ function _renderUpcomingEvents() {
   if (!container) return;
 
   const todayStr = today();
+
+  const rawEvents = window.APP_DATA.events
+    .filter(ev => ev.event_date >= todayStr)
+    .map(ev => ({ id: ev.id, name: ev.name, date: ev.event_date, time: ev.event_time, color: ev.color || '#6366F1', isTask: false }));
+
+  const taskItems = window.APP_DATA.tasks
+    .filter(t => t.due_date && t.due_date >= todayStr && !t.done)
+    .map(t => ({ id: t.id, name: t.name, date: t.due_date, time: null, color: 'var(--accent)', isTask: true }));
+
   const items = [
-    ...window.APP_DATA.events
-      .filter(ev => ev.event_date >= todayStr)
-      .map(ev => ({ id: ev.id, name: ev.name, date: ev.event_date, time: ev.event_time, color: ev.color || '#6366F1', isTask: false })),
-    ...window.APP_DATA.tasks
-      .filter(t => t.due_date && t.due_date >= todayStr && !t.done)
-      .map(t => ({ id: t.id, name: t.name, date: t.due_date, time: null, color: 'var(--accent)', isTask: true })),
+    ..._groupConsecutiveEvents(rawEvents),
+    ...taskItems,
   ].sort((a, b) => a.date < b.date ? -1 : 1).slice(0, 10);
 
   if (items.length === 0) {
@@ -173,30 +178,66 @@ function _renderUpcomingEvents() {
     return;
   }
 
-  container.innerHTML = items.map(item => `
-    <div class="event-item">
-      <div class="event-color-strip" style="background:${item.color}"></div>
-      <div class="event-info">
-        <div class="event-title">
-          ${escHtml(item.name)}
-          ${item.isTask ? '<span style="font-size:10px;color:var(--text-muted);margin-left:5px">[úkol]</span>' : ''}
-        </div>
-        <div class="event-meta">
-          ${formatDate(item.date)}${item.time ? ' · ' + item.time.slice(0, 5) : ''}
-        </div>
-      </div>
-      ${!item.isTask ? `
-        <button class="icon-btn del" data-del-event="${escHtml(item.id)}" title="Smazat" aria-label="Smazat událost">✕</button>
-      ` : ''}
-    </div>`).join('');
+  container.innerHTML = items.map(item => {
+    const hasRange  = item.endDate && item.endDate !== item.date;
+    const dateLabel = hasRange
+      ? `${formatDate(item.date)} – ${formatDate(item.endDate)}`
+      : `${formatDate(item.date)}${item.time ? ' · ' + item.time.slice(0, 5) : ''}`;
+    const idsAttr   = (item.ids || [item.id]).map(id => escHtml(id)).join(',');
 
-  container.querySelectorAll('[data-del-event]').forEach(btn => {
+    return `
+      <div class="event-item">
+        <div class="event-color-strip" style="background:${item.color}"></div>
+        <div class="event-info">
+          <div class="event-title">
+            ${escHtml(item.name)}
+            ${item.isTask ? '<span style="font-size:10px;color:var(--text-muted);margin-left:5px">[úkol]</span>' : ''}
+          </div>
+          <div class="event-meta">${dateLabel}</div>
+        </div>
+        ${!item.isTask ? `
+          <button class="icon-btn del" data-del-ids="${idsAttr}" title="Smazat" aria-label="Smazat událost">✕</button>
+        ` : ''}
+      </div>`;
+  }).join('');
+
+  container.querySelectorAll('[data-del-ids]').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
-      const ev = window.APP_DATA.events.find(e => e.id === btn.dataset.delEvent);
-      confirmDelete(`Opravdu smazat událost „${ev?.name || ''}"?`, () => deleteEvent(btn.dataset.delEvent));
+      const ids      = btn.dataset.delIds.split(',');
+      const evName   = window.APP_DATA.events.find(e => e.id === ids[0])?.name || '';
+      const label    = ids.length > 1
+        ? `${ids.length} opakování události „${evName}"`
+        : `událost „${evName}"`;
+      confirmDelete(`Opravdu smazat ${label}?`, () => deleteEventGroup(ids));
     });
   });
+}
+
+/* Seskupí po sobě jdoucí události se stejným názvem a barvou */
+function _groupConsecutiveEvents(events) {
+  const sorted = [...events].sort((a, b) => a.date < b.date ? -1 : 1);
+  const groups  = [];
+
+  for (const ev of sorted) {
+    let merged = false;
+    for (let i = groups.length - 1; i >= 0; i--) {
+      const g = groups[i];
+      if (g.name !== ev.name || g.color !== ev.color) continue;
+      const diffDays = Math.round(
+        (new Date(ev.date + 'T00:00:00') - new Date(g.endDate + 'T00:00:00')) / 86400000
+      );
+      // Sousední dny nebo víkendová mezera (pá→po = 3 dny)
+      if (diffDays >= 1 && diffDays <= 3) {
+        g.endDate = ev.date;
+        g.ids.push(ev.id);
+        merged = true;
+        break;
+      }
+    }
+    if (!merged) groups.push({ ...ev, endDate: ev.date, ids: [ev.id] });
+  }
+  return groups;
 }
 
 /* ─────────────────────────────────────────────────────
@@ -396,11 +437,15 @@ async function saveEvent() {
 function _getDatesInRange(startStr, endStr, workdaysOnly) {
   const dates   = [];
   const current = new Date(startStr + 'T00:00:00');
-  const end     = new Date(endStr + 'T00:00:00');
+  const end     = new Date(endStr   + 'T00:00:00');
   while (current <= end) {
-    const dow = current.getDay(); // 0=Ne, 1=Po … 5=Pá, 6=So
+    const dow = current.getDay(); // 0=Ne, 1=Po … 5=Pá, 6=So — local time
     if (!workdaysOnly || (dow >= 1 && dow <= 5)) {
-      dates.push(current.toISOString().slice(0, 10));
+      // Použít lokální datum, ne UTC (toISOString by posunulo o timezone offset)
+      const y = current.getFullYear();
+      const m = String(current.getMonth() + 1).padStart(2, '0');
+      const d = String(current.getDate()).padStart(2, '0');
+      dates.push(`${y}-${m}-${d}`);
     }
     current.setDate(current.getDate() + 1);
   }
@@ -408,26 +453,36 @@ function _getDatesInRange(startStr, endStr, workdaysOnly) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   SMAZÁNÍ UDÁLOSTI
+   SMAZÁNÍ UDÁLOSTI / SKUPINY UDÁLOSTÍ
 ═══════════════════════════════════════════════════════ */
 async function deleteEvent(id) {
-  const idx     = window.APP_DATA.events.findIndex(e => e.id === id);
-  const removed = window.APP_DATA.events.splice(idx, 1)[0];
+  await deleteEventGroup([id]);
+}
+
+async function deleteEventGroup(ids) {
+  // Smazat lokálně
+  ids.forEach(id => {
+    const idx = window.APP_DATA.events.findIndex(e => e.id === id);
+    if (idx !== -1) window.APP_DATA.events.splice(idx, 1);
+  });
   renderCalendar();
 
+  const label = ids.length > 1 ? `${ids.length} událostí smazáno` : 'Událost smazána';
+
   if (typeof isGuestMode === 'function' && isGuestMode()) {
-    showToast('Událost smazána', 'info'); return;
+    showToast(label, 'info'); return;
   }
 
-  const { error } = await window.supabaseClient.from('events').delete().eq('id', id);
+  const query = ids.length === 1
+    ? window.supabaseClient.from('events').delete().eq('id', ids[0])
+    : window.supabaseClient.from('events').delete().in('id', ids);
+
+  const { error } = await query;
   if (error) {
-    window.APP_DATA.events.splice(idx, 0, removed);
-    window.APP_DATA.events.sort((a, b) => a.event_date < b.event_date ? -1 : 1);
-    renderCalendar();
     showToast(typeof friendlyDbError === 'function' ? friendlyDbError(error) : 'Chyba.', 'error');
     return;
   }
-  showToast('Událost smazána', 'info');
+  showToast(label, 'info');
 }
 
 function _clearEventErrors() {

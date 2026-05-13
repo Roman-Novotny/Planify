@@ -292,3 +292,71 @@ body.has-guest-banner .section.active { padding-top: 72px !important; }
 .compact-mode .note-card   { padding: 12px !important; }
 .compact-mode .widget-body { padding: 10px 14px !important; }
 .compact-mode .nav-item    { padding: 7px 10px !important; }
+
+
+/* ══════════════════════════════════════════════════════
+   10. KALENDÁŘ — MOBILNÍ RESPONZIVITA
+══════════════════════════════════════════════════════ */
+
+/* Ovládací lišta — wrap na mobilu */
+@media (max-width: 640px) {
+  .calendar-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cal-title {
+    order: -1;
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Menší buňky */
+  .cal-day {
+    min-height: 54px;
+    padding: 4px 3px;
+  }
+  .day-num {
+    font-size: 11px;
+    width: 20px;
+    height: 20px;
+  }
+  .cal-weekday {
+    padding: 6px 2px;
+    font-size: 10px;
+  }
+
+  /* Čipy — jen barevný proužek, text zkrácen */
+  .day-event-chip {
+    font-size: 8px;
+    padding: 1px 3px;
+    border-radius: 2px;
+  }
+
+  /* Seznam nadcházejících událostí */
+  .event-item {
+    gap: 10px;
+    padding: 10px 12px;
+  }
+  .event-color-strip {
+    width: 3px;
+    height: 28px;
+  }
+  .events-list-section h3 {
+    font-size: 13px;
+  }
+}
+
+/* Velmi malé telefony — čipy jako barevné tečky, bez textu */
+@media (max-width: 380px) {
+  .cal-day      { min-height: 44px; padding: 3px 2px; }
+  .day-event-chip {
+    font-size: 0;      /* skrýt text */
+    padding: 4px 2px;  /* zůstane jako barevný proužek */
+    line-height: 0;
+  }
+}
