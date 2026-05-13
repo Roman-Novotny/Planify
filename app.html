@@ -28,9 +28,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Planify"/>
   <link rel="manifest" href="manifest.json"/>
-  <link rel="icon" type="image/svg+xml" href="img/favicon.svg"/>
-  <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png"/>
-  <link rel="apple-touch-icon" href="img/icon-192.png"/>
+  <link rel="icon" type="image/png" href="img/icon.png"/>
+  <link rel="apple-touch-icon" href="img/icon.png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/app.css"/>
@@ -607,13 +606,23 @@
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label for="eventDate">Datum</label>
+          <label for="eventDate">Datum od</label>
           <input type="date" id="eventDate"/>
         </div>
         <div class="form-group">
-          <label for="eventTime">Čas</label>
-          <input type="time" id="eventTime"/>
+          <label for="eventEndDate">Datum do</label>
+          <input type="date" id="eventEndDate"/>
         </div>
+      </div>
+      <div class="form-group" id="eventWorkdaysGroup" style="display:none;margin-top:-4px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text-secondary)">
+          <input type="checkbox" id="eventWorkdaysOnly" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer"/>
+          Jen pracovní dny (Po–Pá)
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="eventTime">Čas (volitelný)</label>
+        <input type="time" id="eventTime"/>
       </div>
       <div class="form-group">
         <label for="eventDesc">Popis</label>

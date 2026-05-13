@@ -260,14 +260,44 @@ function _openAddEventModal(dateStr = '') {
   eventEditId        = null;
   selectedEventColor = '#6366F1';
   document.getElementById('eventModalTitle').textContent = 'Nová událost';
-  document.getElementById('eventName').value  = '';
-  document.getElementById('eventDate').value  = dateStr;
-  document.getElementById('eventTime').value  = '';
-  document.getElementById('eventDesc').value  = '';
+  document.getElementById('eventName').value    = '';
+  document.getElementById('eventDate').value    = dateStr;
+  document.getElementById('eventEndDate').value = dateStr;
+  document.getElementById('eventTime').value    = '';
+  document.getElementById('eventDesc').value    = '';
+  const wg = document.getElementById('eventWorkdaysGroup');
+  if (wg) wg.style.display = 'none';
+  const wc = document.getElementById('eventWorkdaysOnly');
+  if (wc) wc.checked = false;
   document.querySelectorAll('#eventColorPicker .color-dot').forEach((d, i) => d.classList.toggle('active', i === 0));
   _clearEventErrors();
   openModal('eventModal');
 }
+
+function _updateWorkdaysVisibility() {
+  const startVal = document.getElementById('eventDate')?.value;
+  const endVal   = document.getElementById('eventEndDate')?.value;
+  const group    = document.getElementById('eventWorkdaysGroup');
+  if (!group) return;
+  if (endVal && startVal && endVal > startVal) {
+    group.style.display = 'block';
+  } else {
+    group.style.display = 'none';
+    const cb = document.getElementById('eventWorkdaysOnly');
+    if (cb) cb.checked = false;
+  }
+}
+
+document.getElementById('eventDate')?.addEventListener('change', () => {
+  const startEl = document.getElementById('eventDate');
+  const endEl   = document.getElementById('eventEndDate');
+  if (endEl && startEl && endEl.value && endEl.value < startEl.value) {
+    endEl.value = startEl.value;
+  }
+  _updateWorkdaysVisibility();
+});
+
+document.getElementById('eventEndDate')?.addEventListener('change', _updateWorkdaysVisibility);
 
 /* ═══════════════════════════════════════════════════════
    ULOŽENÍ UDÁLOSTI
@@ -279,22 +309,31 @@ document.getElementById('eventName')?.addEventListener('keydown', e => {
 
 async function saveEvent() {
   _clearEventErrors();
-  const name = document.getElementById('eventName').value.trim();
-  const date = document.getElementById('eventDate').value;
+  const name         = document.getElementById('eventName').value.trim();
+  const startDate    = document.getElementById('eventDate').value;
+  const endDate      = document.getElementById('eventEndDate').value;
+  const workdaysOnly = document.getElementById('eventWorkdaysOnly')?.checked || false;
 
   if (!name) {
     document.getElementById('eventNameErr').textContent = 'Zadejte název události.';
     document.getElementById('eventName').focus(); return;
   }
-  if (!date) {
+  if (!startDate) {
     document.getElementById('eventNameErr').textContent = 'Vyberte datum.';
     return;
   }
 
-  const payload = {
+  const effectiveEnd = endDate && endDate >= startDate ? endDate : startDate;
+  const dates        = _getDatesInRange(startDate, effectiveEnd, workdaysOnly);
+
+  if (dates.length === 0) {
+    document.getElementById('eventNameErr').textContent = 'V zadaném rozsahu nejsou žádné pracovní dny.';
+    return;
+  }
+
+  const basePayload = {
     name,
-    event_date:  date,
-    event_time:  document.getElementById('eventTime').value  || null,
+    event_time:  document.getElementById('eventTime').value || null,
     description: document.getElementById('eventDesc').value.trim() || null,
     color:       selectedEventColor,
     user_id:     typeof currentUser !== 'undefined' && currentUser?.id ? currentUser.id : 'guest',
@@ -304,28 +343,45 @@ async function saveEvent() {
   btn.disabled = true; btn.textContent = 'Ukládám…';
 
   try {
-    // Režim hosta — jen lokálně
     if (typeof isGuestMode === 'function' && isGuestMode()) {
-      payload.id         = 'guest_ev_' + Date.now();
-      payload.created_at = new Date().toISOString();
-      window.APP_DATA.events.push(payload);
+      const now = new Date().toISOString();
+      dates.forEach((d, i) => {
+        window.APP_DATA.events.push({
+          ...basePayload,
+          id:         'guest_ev_' + Date.now() + '_' + i,
+          event_date: d,
+          created_at: now,
+        });
+      });
       window.APP_DATA.events.sort((a, b) => a.event_date < b.event_date ? -1 : 1);
       closeModal('eventModal');
       renderCalendar();
-      showToast('Událost přidána (jen lokálně)', 'warning', 3500);
+      showToast(
+        dates.length > 1 ? `${dates.length} událostí přidáno (jen lokálně)` : 'Událost přidána (jen lokálně)',
+        'warning', 3500
+      );
       if (typeof guestActionWarning === 'function') guestActionWarning('Událost');
       return;
     }
 
-    const { data, error } = await window.supabaseClient
-      .from('events').insert(payload).select().single();
-    if (error) throw error;
+    const payloads = dates.map(d => ({ ...basePayload, event_date: d }));
 
-    window.APP_DATA.events.push(data);
+    if (payloads.length === 1) {
+      const { data, error } = await window.supabaseClient
+        .from('events').insert(payloads[0]).select().single();
+      if (error) throw error;
+      window.APP_DATA.events.push(data);
+    } else {
+      const { data, error } = await window.supabaseClient
+        .from('events').insert(payloads).select();
+      if (error) throw error;
+      window.APP_DATA.events.push(...data);
+    }
+
     window.APP_DATA.events.sort((a, b) => a.event_date < b.event_date ? -1 : 1);
     closeModal('eventModal');
     renderCalendar();
-    showToast('Událost přidána', 'success');
+    showToast(dates.length > 1 ? `${dates.length} událostí přidáno` : 'Událost přidána', 'success');
     if (typeof addXP === 'function') addXP(5, 'Událost přidána');
 
   } catch (err) {
@@ -335,6 +391,20 @@ async function saveEvent() {
   } finally {
     btn.disabled = false; btn.textContent = 'Uložit událost';
   }
+}
+
+function _getDatesInRange(startStr, endStr, workdaysOnly) {
+  const dates   = [];
+  const current = new Date(startStr + 'T00:00:00');
+  const end     = new Date(endStr + 'T00:00:00');
+  while (current <= end) {
+    const dow = current.getDay(); // 0=Ne, 1=Po … 5=Pá, 6=So
+    if (!workdaysOnly || (dow >= 1 && dow <= 5)) {
+      dates.push(current.toISOString().slice(0, 10));
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  return dates;
 }
 
 /* ═══════════════════════════════════════════════════════
